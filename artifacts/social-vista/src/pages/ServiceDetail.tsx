@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { iconMap, slugify, serviceContent } from "@/lib/services-content";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function ServiceDetail() {
   const [, params] = useRoute("/services/:slug");
@@ -13,6 +14,47 @@ export default function ServiceDetail() {
 
   const service = services?.find((s) => slugify(s.title) === slug);
   const content = serviceContent[slug];
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const siteUrl = origin + import.meta.env.BASE_URL.replace(/\/$/, "");
+  useSEO({
+    title: service ? `${service.title} — Social Vista` : "Service — Social Vista",
+    description:
+      content?.intro ??
+      "Discover how Social Vista can help your brand grow with expert digital services.",
+    keywords: service
+      ? `${service.title.toLowerCase()}, ${service.category.toLowerCase()}, social vista, digital agency`
+      : undefined,
+    type: "article",
+    image: content?.image,
+    jsonLd:
+      service && content
+        ? [
+            {
+              "@context": "https://schema.org",
+              "@type": "Service",
+              name: service.title,
+              serviceType: service.category,
+              description: content.intro,
+              provider: {
+                "@type": "Organization",
+                name: "Social Vista",
+                url: siteUrl,
+              },
+              areaServed: "Worldwide",
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+                { "@type": "ListItem", position: 2, name: "Services", item: `${siteUrl}/services` },
+                { "@type": "ListItem", position: 3, name: service.title },
+              ],
+            },
+          ]
+        : undefined,
+  });
 
   if (isLoading) {
     return (

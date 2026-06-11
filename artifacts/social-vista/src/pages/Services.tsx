@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { iconMap, slugify, serviceContent } from "@/lib/services-content";
+import { useSEO } from "@/hooks/use-seo";
 
 const categoryColors: Record<string, string> = {
   "Social Media": "text-primary bg-secondary border-primary/20",
@@ -19,6 +20,14 @@ export default function Services() {
   const { data: services, isLoading } = useListServices();
   const active = services?.filter(s => s.active) ?? [];
   const categories = Array.from(new Set(active.map(s => s.category)));
+
+  useSEO({
+    title: "Our Services — Social Media, Automation & Development | Social Vista",
+    description:
+      "Explore Social Vista's full range of digital services: social media management, WhatsApp chatbots & campaigns, content & influencer marketing, email marketing, SaaS and Web3 development.",
+    keywords:
+      "digital agency services, social media management, whatsapp chatbot, whatsapp campaigns, content creation, influencer marketing, email marketing, saas development, web3 development",
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">

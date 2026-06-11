@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Globe, TrendingUp, Users, Bot, CheckCircle, Star, Sparkles } from "lucide-react";
+import { ArrowRight, Globe, TrendingUp, Users, Bot, CheckCircle, Star, Sparkles, ChevronDown } from "lucide-react";
 import { SiInstagram, SiFacebook, SiX, SiTiktok } from "react-icons/si";
 import { Linkedin } from "lucide-react";
 import { useListServices, useListTestimonials } from "@workspace/api-client-react";
@@ -10,6 +10,34 @@ import { Button } from "@/components/ui/button";
 import { iconMap, slugify } from "@/lib/services-content";
 import { Share2 } from "lucide-react";
 import HeroOrbit from "@/components/HeroOrbit";
+import { useSEO } from "@/hooks/use-seo";
+
+const faqs = [
+  {
+    q: "What services does Social Vista offer?",
+    a: "We are a full-service digital agency. Our work spans social media management, WhatsApp chatbots and broadcast campaigns, content creation and influencer marketing, email marketing, Zoom meeting automation, software consultancy, SaaS product development, and crypto/Web3 builds.",
+  },
+  {
+    q: "How quickly can we get started?",
+    a: "Most engagements kick off within a few days. After a free consultation we send a tailored proposal, and once it is approved we begin onboarding immediately — usually with first deliverables live inside the first one to two weeks.",
+  },
+  {
+    q: "Do you work with startups and small businesses?",
+    a: "Absolutely. We work with everyone from early-stage startups and solo founders to established brands. Every plan is scoped to your goals and budget, so you only pay for what moves the needle for your business.",
+  },
+  {
+    q: "How do you measure success and report results?",
+    a: "We tie every service to clear KPIs and share transparent monthly reports with real-time dashboards. You will always see how activity translates into reach, engagement, leads, and revenue.",
+  },
+  {
+    q: "What makes Social Vista different?",
+    a: "We combine creative strategy with cutting-edge AI automation under one roof. Instead of juggling multiple vendors, you get a single team that handles strategy, content, technology, and reporting end to end.",
+  },
+  {
+    q: "How does pricing work?",
+    a: "Pricing is custom and project-based. After understanding your goals we recommend the right mix of services and provide a clear, no-obligation quote. Book a free consultation to get yours.",
+  },
+];
 
 function useCountUp(target: number, duration = 2000, start = false) {
   const [count, setCount] = useState(0);
@@ -48,6 +76,48 @@ export default function Home() {
   const { data: services } = useListServices();
   const { data: testimonials } = useListTestimonials();
   const featured = services?.filter(s => s.active).slice(0, 6) ?? [];
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const siteUrl = origin + import.meta.env.BASE_URL.replace(/\/$/, "");
+  useSEO({
+    title: "Social Vista — Digital Growth, Social Media & AI Marketing Agency",
+    description:
+      "Social Vista is a full-service digital agency. We help brands grow louder and convert faster with social media management, WhatsApp automation, content & influencer marketing, email marketing, SaaS and Web3 development.",
+    keywords:
+      "digital marketing agency, social media management, whatsapp chatbot, whatsapp marketing, content creation, influencer marketing, email marketing, saas development, web3 development, ai automation",
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "Social Vista",
+        url: siteUrl,
+        logo: `${siteUrl}/favicon.svg`,
+        description:
+          "A full-service digital agency helping brands grow with social media, automation, content, and product development.",
+        contactPoint: {
+          "@type": "ContactPoint",
+          email: "hello@socialvista.agency",
+          contactType: "customer service",
+          areaServed: "Worldwide",
+        },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Social Vista",
+        url: siteUrl,
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqs.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      },
+    ],
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -239,6 +309,30 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* FAQ */}
+      <section className="py-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-secondary border border-primary/20 rounded-full px-4 py-1.5 text-xs text-primary font-semibold mb-4">
+            FAQ
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold font-serif mb-3">
+            Frequently Asked <span className="text-gradient">Questions</span>
+          </h2>
+          <p className="text-muted-foreground">Everything you need to know about working with Social Vista.</p>
+        </div>
+        <div className="space-y-3">
+          {faqs.map((f) => (
+            <details key={f.q} className="group bg-card card-soft rounded-2xl px-6">
+              <summary className="flex items-center justify-between gap-4 cursor-pointer list-none py-5 font-semibold text-foreground [&::-webkit-details-marker]:hidden">
+                {f.q}
+                <ChevronDown className="w-5 h-5 text-primary shrink-0 transition-transform group-open:rotate-180" />
+              </summary>
+              <p className="text-muted-foreground text-sm leading-relaxed pb-5 -mt-1">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
 
       {/* CTA Banner */}
       <section className="py-16 px-4">
