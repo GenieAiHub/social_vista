@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Social Vista"
+version = "1.0.0"
+id = "artifacts/social-vista"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18958
+
+[services.development]
+run = "pnpm --filter @workspace/social-vista run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/social-vista", "run", "build" ]
+publicDir = "artifacts/social-vista/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18958"
+BASE_PATH = "/"
