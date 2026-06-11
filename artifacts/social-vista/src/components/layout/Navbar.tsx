@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, ChevronDown, ArrowRight, Share2, Sparkles, Tag, HelpCircle } from "lucide-react";
+import { Menu, X, ChevronDown, ArrowRight, Share2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { useListServices } from "@workspace/api-client-react";
 import { iconMap, slugify } from "@/lib/services-content";
-
-const pagesLinks = [
-  { label: "Pricing", href: "/pricing", desc: "Plans for every stage", icon: Tag },
-  { label: "FAQ", href: "/faq", desc: "Common questions answered", icon: HelpCircle },
-];
 
 const categoryAccent: Record<string, string> = {
   "Social Media": "text-primary",
@@ -43,7 +38,6 @@ export default function Navbar() {
   }, []);
 
   const isServices = location.startsWith("/services");
-  const isPages = location === "/pricing" || location === "/faq";
 
   return (
     <header
@@ -181,38 +175,17 @@ export default function Navbar() {
               </span>
             </Link>
 
-            {/* Pages dropdown */}
-            <div className="relative group">
-              <button
-                type="button"
-                aria-haspopup="true"
-                className={`flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
-                  isPages
+            <Link href="/pricing" data-testid="link-nav-pricing">
+              <span
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                  location === "/pricing"
                     ? "text-primary bg-secondary"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
-                Pages
-                <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" />
-              </button>
-              <div className="absolute left-1/2 -translate-x-1/2 top-full pt-3 w-56 opacity-0 invisible translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0">
-                <div className="bg-background border border-border rounded-2xl shadow-2xl p-2">
-                  {pagesLinks.map((p) => (
-                    <Link key={p.href} href={p.href} data-testid={`link-pages-${p.label.toLowerCase()}`}>
-                      <span className="flex items-start gap-2.5 rounded-xl p-2.5 hover:bg-secondary transition-colors cursor-pointer group/item">
-                        <span className="mt-0.5 w-8 h-8 shrink-0 rounded-lg bg-secondary border border-primary/15 flex items-center justify-center group-hover/item:bg-primary transition-colors">
-                          <p.icon className="w-4 h-4 text-primary group-hover/item:text-white transition-colors" />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-sm font-medium text-foreground leading-tight">{p.label}</span>
-                          <span className="block text-xs text-muted-foreground">{p.desc}</span>
-                        </span>
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+                Pricing
+              </span>
+            </Link>
 
             <Link href="/contact" data-testid="link-nav-contact">
               <span
@@ -328,22 +301,18 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 px-4 text-primary">Pages</p>
-            <div className="space-y-0.5">
-              {pagesLinks.map((p) => (
-                <Link key={p.href} href={p.href} data-testid={`link-mobile-pages-${p.label.toLowerCase()}`}>
-                  <span
-                    className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-secondary cursor-pointer"
-                    onClick={() => setOpen(false)}
-                  >
-                    <p.icon className="w-4 h-4 shrink-0 text-primary" />
-                    {p.label}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
+          <Link href="/pricing" data-testid="link-mobile-pricing">
+            <span
+              className={`block px-4 py-3 rounded-xl text-sm font-medium cursor-pointer ${
+                location === "/pricing"
+                  ? "text-primary bg-secondary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+              onClick={() => setOpen(false)}
+            >
+              Pricing
+            </span>
+          </Link>
 
           <Link href="/contact" data-testid="link-mobile-contact">
             <span

@@ -63,7 +63,6 @@ export default function Footer() {
                 { label: "Services", href: "/services" },
                 { label: "Blog", href: "/blog" },
                 { label: "Pricing", href: "/pricing" },
-                { label: "FAQ", href: "/faq" },
                 { label: "Contact Us", href: "/contact" },
                 { label: "Admin Portal", href: "/admin/login" },
               ].map((item) => (
