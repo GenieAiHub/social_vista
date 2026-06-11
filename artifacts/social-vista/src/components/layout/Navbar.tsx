@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, ChevronDown, ArrowRight, Share2, Sparkles } from "lucide-react";
+import { Menu, X, ChevronDown, ArrowRight, Share2, Sparkles, Tag, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { useListServices } from "@workspace/api-client-react";
 import { iconMap, slugify } from "@/lib/services-content";
+
+const pagesLinks = [
+  { label: "Pricing", href: "/pricing", desc: "Plans for every stage", icon: Tag },
+  { label: "FAQ", href: "/faq", desc: "Common questions answered", icon: HelpCircle },
+];
 
 const categoryAccent: Record<string, string> = {
   "Social Media": "text-primary",
@@ -38,6 +43,7 @@ export default function Navbar() {
   }, []);
 
   const isServices = location.startsWith("/services");
+  const isPages = location === "/pricing" || location === "/faq";
 
   return (
     <header
@@ -87,7 +93,7 @@ export default function Navbar() {
               </Link>
 
               {/* Mega panel */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full pt-3 w-[min(940px,92vw)] opacity-0 invisible translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full pt-3 w-[min(940px,92vw)] opacity-0 invisible translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0">
                 <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden grid grid-cols-12">
                   {/* Category columns */}
                   <div className="col-span-12 lg:col-span-8 p-6 grid grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-6">
@@ -151,6 +157,63 @@ export default function Navbar() {
               </div>
             </div>
 
+            <Link href="/about" data-testid="link-nav-about">
+              <span
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                  location === "/about"
+                    ? "text-primary bg-secondary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                About
+              </span>
+            </Link>
+
+            <Link href="/blog" data-testid="link-nav-blog">
+              <span
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                  location.startsWith("/blog")
+                    ? "text-primary bg-secondary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                Blog
+              </span>
+            </Link>
+
+            {/* Pages dropdown */}
+            <div className="relative group">
+              <button
+                type="button"
+                aria-haspopup="true"
+                className={`flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                  isPages
+                    ? "text-primary bg-secondary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                Pages
+                <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" />
+              </button>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full pt-3 w-56 opacity-0 invisible translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0">
+                <div className="bg-background border border-border rounded-2xl shadow-2xl p-2">
+                  {pagesLinks.map((p) => (
+                    <Link key={p.href} href={p.href} data-testid={`link-pages-${p.label.toLowerCase()}`}>
+                      <span className="flex items-start gap-2.5 rounded-xl p-2.5 hover:bg-secondary transition-colors cursor-pointer group/item">
+                        <span className="mt-0.5 w-8 h-8 shrink-0 rounded-lg bg-secondary border border-primary/15 flex items-center justify-center group-hover/item:bg-primary transition-colors">
+                          <p.icon className="w-4 h-4 text-primary group-hover/item:text-white transition-colors" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium text-foreground leading-tight">{p.label}</span>
+                          <span className="block text-xs text-muted-foreground">{p.desc}</span>
+                        </span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             <Link href="/contact" data-testid="link-nav-contact">
               <span
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
@@ -159,7 +222,7 @@ export default function Navbar() {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
-                Contact
+                Contact Us
               </span>
             </Link>
           </nav>
@@ -167,7 +230,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             <Link href="/contact" data-testid="button-get-started">
               <Button size="sm" className="bg-primary hover:bg-primary/90 glow-primary text-white font-semibold rounded-full px-5">
-                Get Started
+                Free Consultation
               </Button>
             </Link>
           </div>
@@ -239,6 +302,49 @@ export default function Navbar() {
             </div>
           </div>
 
+          <Link href="/about" data-testid="link-mobile-about">
+            <span
+              className={`block px-4 py-3 rounded-xl text-sm font-medium cursor-pointer ${
+                location === "/about"
+                  ? "text-primary bg-secondary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+              onClick={() => setOpen(false)}
+            >
+              About
+            </span>
+          </Link>
+
+          <Link href="/blog" data-testid="link-mobile-blog">
+            <span
+              className={`block px-4 py-3 rounded-xl text-sm font-medium cursor-pointer ${
+                location.startsWith("/blog")
+                  ? "text-primary bg-secondary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+              onClick={() => setOpen(false)}
+            >
+              Blog
+            </span>
+          </Link>
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 px-4 text-primary">Pages</p>
+            <div className="space-y-0.5">
+              {pagesLinks.map((p) => (
+                <Link key={p.href} href={p.href} data-testid={`link-mobile-pages-${p.label.toLowerCase()}`}>
+                  <span
+                    className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-secondary cursor-pointer"
+                    onClick={() => setOpen(false)}
+                  >
+                    <p.icon className="w-4 h-4 shrink-0 text-primary" />
+                    {p.label}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
           <Link href="/contact" data-testid="link-mobile-contact">
             <span
               className={`block px-4 py-3 rounded-xl text-sm font-medium cursor-pointer ${
@@ -248,13 +354,13 @@ export default function Navbar() {
               }`}
               onClick={() => setOpen(false)}
             >
-              Contact
+              Contact Us
             </span>
           </Link>
 
           <Link href="/contact">
             <Button className="w-full bg-primary hover:bg-primary/90 text-white mt-2 rounded-full" onClick={() => setOpen(false)}>
-              Get Started
+              Free Consultation
             </Button>
           </Link>
         </div>

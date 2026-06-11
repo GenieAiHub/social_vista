@@ -4,8 +4,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import About from "@/pages/About";
 import Services from "@/pages/Services";
 import ServiceDetail from "@/pages/ServiceDetail";
+import Blog from "@/pages/Blog";
+import BlogPost from "@/pages/BlogPost";
+import Pricing from "@/pages/Pricing";
+import FAQ from "@/pages/FAQ";
 import Contact from "@/pages/Contact";
 import AdminLogin from "@/pages/admin/Login";
 import AdminDashboard from "@/pages/admin/Dashboard";
@@ -32,8 +37,13 @@ function Router() {
     <>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/about" component={About} />
         <Route path="/services" component={Services} />
         <Route path="/services/:slug" component={ServiceDetail} />
+        <Route path="/blog" component={Blog} />
+        <Route path="/blog/:slug" component={BlogPost} />
+        <Route path="/pricing" component={Pricing} />
+        <Route path="/faq" component={FAQ} />
         <Route path="/contact" component={Contact} />
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin">

@@ -2,3 +2,4 @@
 - [Social Vista service pages](social-vista-service-pages.md) — per-service landing content is a frontend map keyed by slugify(title); DB services table has no slug/benefits/image columns.
 - [Social Vista SEO](social-vista-seo.md) — per-route meta/JSON-LD via client-side useSEO hook + static index.html defaults; no SSR (Vite SPA on Railway); use siteUrl=origin+BASE_URL for schema URLs.
 - [Social Vista AI chat agent](social-vista-chat-agent.md) — chat grounded in live DB services + static knowledge base (normalizeKey by title); history in ChatMessageInput; never invents pricing.
+- [Social Vista site map](social-vista-site-map.md) — full nav (Home, Services▾, About, Blog, Pages▾, Contact), routes, and where page content lives (blog-content.ts, static pages).
