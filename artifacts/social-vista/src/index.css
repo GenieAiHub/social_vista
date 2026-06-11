@@ -222,3 +222,18 @@
   .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after { inset: -1px; }
 }
+
+/* Hero orbit floating nodes */
+.orbit-node {
+  transform: translate(-50%, -50%);
+  animation: orbitFloat 4.5s ease-in-out infinite;
+}
+@keyframes orbitFloat {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-8px);
+  }
+}

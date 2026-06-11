@@ -9,7 +9,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { iconMap, slugify } from "@/lib/services-content";
 import { Share2 } from "lucide-react";
-import heroIllustration from "@/assets/hero-illustration.png";
+import HeroOrbit from "@/components/HeroOrbit";
 
 function useCountUp(target: number, duration = 2000, start = false) {
   const [count, setCount] = useState(0);
@@ -97,11 +97,10 @@ export default function Home() {
 
           <div className="relative">
             <div className="blob bg-primary/15 w-72 h-72 top-8 left-8" />
-            <img
-              src={heroIllustration}
-              alt="Digital marketing team driving brand growth"
-              className="relative z-10 w-full max-w-lg mx-auto drop-shadow-xl"
-            />
+            <div className="blob bg-accent/15 w-64 h-64 bottom-0 right-8" />
+            <div className="relative z-10">
+              <HeroOrbit />
+            </div>
           </div>
         </div>
       </section>
