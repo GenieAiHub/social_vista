@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Settings, FileText, MessageSquare, LogOut, Zap, Menu, X } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Zap, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
@@ -7,6 +7,7 @@ const navItems = [
   { label: "Services", href: "/admin/services", icon: Settings },
   { label: "Content", href: "/admin/content", icon: FileText },
   { label: "Contacts", href: "/admin/contacts", icon: MessageSquare },
+  { label: "Theme", href: "/admin/theme", icon: Palette },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

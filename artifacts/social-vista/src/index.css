@@ -145,6 +145,36 @@
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l - 8) / alpha);
 }
 
+/* ── Selectable color themes (set via data-theme on <html>) ── */
+/* "rose" is the default defined in :root above. */
+:root[data-theme="ocean"] {
+  --ring: 212 90% 50%;
+  --primary: 212 90% 50%;            /* blue */
+  --secondary: 210 100% 96.5%;       /* soft blue */
+  --secondary-foreground: 212 60% 38%;
+  --accent: 190 85% 45%;             /* cyan */
+  --chart-1: 212 90% 50%;
+  --chart-2: 190 85% 45%;
+  --sidebar-primary: 212 90% 50%;
+  --sidebar-accent: 210 100% 96%;
+  --sidebar-accent-foreground: 212 60% 38%;
+  --sidebar-ring: 212 90% 50%;
+}
+
+:root[data-theme="sunset"] {
+  --ring: 14 88% 55%;
+  --primary: 14 88% 55%;             /* coral */
+  --secondary: 24 100% 96%;          /* soft peach */
+  --secondary-foreground: 14 65% 42%;
+  --accent: 38 92% 52%;              /* amber */
+  --chart-1: 14 88% 55%;
+  --chart-2: 38 92% 52%;
+  --sidebar-primary: 14 88% 55%;
+  --sidebar-accent: 24 100% 96%;
+  --sidebar-accent-foreground: 14 65% 42%;
+  --sidebar-ring: 14 88% 55%;
+}
+
 @layer base {
   * { @apply border-border; }
   body { @apply font-sans antialiased bg-background text-foreground; }
@@ -153,16 +183,16 @@
 
 /* Utilities */
 @layer utilities {
-  .glow-primary { box-shadow: 0 12px 30px hsl(335 85% 55% / 0.30); }
-  .glow-accent  { box-shadow: 0 12px 30px hsl(265 70% 60% / 0.28); }
+  .glow-primary { box-shadow: 0 12px 30px hsl(var(--primary) / 0.30); }
+  .glow-accent  { box-shadow: 0 12px 30px hsl(var(--accent) / 0.28); }
   .text-gradient {
-    background: linear-gradient(120deg, hsl(335 85% 55%), hsl(265 70% 60%));
+    background: linear-gradient(120deg, hsl(var(--primary)), hsl(var(--accent)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .bg-gradient-brand {
-    background: linear-gradient(120deg, hsl(335 85% 55%), hsl(265 70% 60%));
+    background: linear-gradient(120deg, hsl(var(--primary)), hsl(var(--accent)));
   }
   .card-soft {
     border: 1px solid hsl(var(--card-border));
@@ -171,7 +201,7 @@
   }
   .card-soft:hover {
     transform: translateY(-4px);
-    border-color: hsl(335 85% 55% / 0.35);
+    border-color: hsl(var(--primary) / 0.35);
     box-shadow: var(--shadow-lg);
   }
   .grid-bg {

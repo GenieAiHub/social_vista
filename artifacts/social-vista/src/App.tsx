@@ -17,7 +17,9 @@ import AdminDashboard from "@/pages/admin/Dashboard";
 import AdminServices from "@/pages/admin/ServicesAdmin";
 import AdminContent from "@/pages/admin/ContentAdmin";
 import AdminContacts from "@/pages/admin/ContactsAdmin";
+import AdminTheme from "@/pages/admin/ThemeAdmin";
 import AIChatWidget from "@/components/AIChatWidget";
+import ThemeApplier from "@/components/ThemeApplier";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,7 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
 function Router() {
   return (
     <>
+      <ThemeApplier />
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/about" component={About} />
@@ -57,6 +60,9 @@ function Router() {
         </Route>
         <Route path="/admin/contacts">
           <AdminGuard><AdminContacts /></AdminGuard>
+        </Route>
+        <Route path="/admin/theme">
+          <AdminGuard><AdminTheme /></AdminGuard>
         </Route>
         <Route component={NotFound} />
       </Switch>
