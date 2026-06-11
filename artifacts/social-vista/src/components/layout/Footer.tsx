@@ -1,0 +1,81 @@
+import { Link } from "wouter";
+import { Zap, Twitter, Linkedin, Instagram, Facebook, Github } from "lucide-react";
+
+export default function Footer() {
+  return (
+    <footer className="border-t border-border bg-card/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          {/* Brand */}
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center glow-primary">
+                <Zap className="w-4 h-4 text-white" />
+              </span>
+              <span className="font-bold text-xl text-gradient font-serif">Social Vista</span>
+            </div>
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
+              Your full-service digital growth partner. From social media mastery to SaaS development, Web3, and AI-powered automation.
+            </p>
+            <div className="flex gap-3 mt-6">
+              {[Twitter, Linkedin, Instagram, Facebook].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Services */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Services</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {["Social Media Management", "WhatsApp Chatbot", "Zoom Meetings Manager", "SaaS Development", "Crypto & Web3", "Software Consultancy"].map((s) => (
+                <li key={s}>
+                  <Link href="/services">
+                    <span className="hover:text-primary transition-colors cursor-pointer">{s}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Company</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {[
+                { label: "Home", href: "/" },
+                { label: "Services", href: "/services" },
+                { label: "Contact Us", href: "/contact" },
+                { label: "Admin Portal", href: "/admin/login" },
+              ].map((item) => (
+                <li key={item.label}>
+                  <Link href={item.href}>
+                    <span className="hover:text-primary transition-colors cursor-pointer">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-border mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-muted-foreground text-sm">
+            &copy; {new Date().getFullYear()} Social Vista. All rights reserved.
+          </p>
+          <p className="text-muted-foreground text-xs">
+            AI powered by{" "}
+            <a href="https://gnx.co.in" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              GNX AI (gnx.co.in)
+            </a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
