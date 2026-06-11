@@ -114,10 +114,6 @@ export default function AdminLogin() {
               </Button>
             </form>
           </Form>
-
-          <p className="text-xs text-muted-foreground text-center mt-5">
-            Default: <span className="text-primary font-mono">admin</span> / <span className="text-primary font-mono">socialvista2024</span>
-          </p>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
