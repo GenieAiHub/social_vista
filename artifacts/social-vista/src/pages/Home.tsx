@@ -9,7 +9,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { iconMap, slugify } from "@/lib/services-content";
 import { Share2 } from "lucide-react";
-import heroTeam from "@/assets/hero-team.png";
+import HeroOrbit from "@/components/HeroOrbit";
 import { useSEO } from "@/hooks/use-seo";
 
 const faqs = [
@@ -169,16 +169,7 @@ export default function Home() {
             <div className="blob bg-primary/15 w-72 h-72 top-8 left-8" />
             <div className="blob bg-accent/15 w-64 h-64 bottom-0 right-8" />
             <div className="relative z-10">
-              <div className="card-soft bg-card rounded-3xl p-3 sm:p-4 shadow-xl">
-                <img
-                  src={heroTeam}
-                  alt="Social Vista team analyzing social media analytics and growth dashboards"
-                  className="w-full h-auto rounded-2xl"
-                  loading="eager"
-                  width={1024}
-                  height={950}
-                />
-              </div>
+              <HeroOrbit />
             </div>
           </div>
         </div>

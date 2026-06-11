@@ -223,17 +223,48 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after { inset: -1px; }
 }
 
-/* Hero orbit floating nodes */
+/* Hero orbit */
+.orbit-spin {
+  animation: orbitSpin 28s linear infinite;
+}
+.orbit-spin-reverse {
+  animation: orbitSpin 36s linear infinite reverse;
+}
+.orbit-counter {
+  animation: orbitSpin 28s linear infinite reverse;
+}
+.orbit-counter-reverse {
+  animation: orbitSpin 36s linear infinite;
+}
 .orbit-node {
   transform: translate(-50%, -50%);
-  animation: orbitFloat 4.5s ease-in-out infinite;
 }
-@keyframes orbitFloat {
+@keyframes orbitSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.hero-hub-pulse {
+  animation: heroHubPulse 3.5s ease-in-out infinite;
+}
+@keyframes heroHubPulse {
   0%,
   100% {
-    transform: translate(-50%, -50%) translateY(0);
+    transform: scale(1);
   }
   50% {
-    transform: translate(-50%, -50%) translateY(-8px);
+    transform: scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit-spin,
+  .orbit-spin-reverse,
+  .orbit-counter,
+  .orbit-counter-reverse,
+  .hero-hub-pulse {
+    animation: none;
   }
 }
