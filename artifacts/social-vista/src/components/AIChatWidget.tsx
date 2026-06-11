@@ -24,10 +24,11 @@ export default function AIChatWidget() {
   function handleSend() {
     const text = input.trim();
     if (!text || sendMessage.isPending) return;
+    const history = messages.slice(1).map((m) => ({ role: m.role, content: m.content }));
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     sendMessage.mutate(
-      { data: { message: text } },
+      { data: { message: text, history } },
       {
         onSuccess: (data) => {
           setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);

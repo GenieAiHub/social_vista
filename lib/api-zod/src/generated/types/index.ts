@@ -11,6 +11,8 @@ export * from './adminLoginResult';
 export * from './adminStats';
 export * from './chatMessageInput';
 export * from './chatResponse';
+export * from './chatTurn';
+export * from './chatTurnRole';
 export * from './contact';
 export * from './contactInput';
 export * from './contentBlock';

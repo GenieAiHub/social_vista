@@ -88,9 +88,29 @@ export interface ContentBlockInput {
   value: string;
 }
 
+export type ChatTurnRole = typeof ChatTurnRole[keyof typeof ChatTurnRole];
+
+
+export const ChatTurnRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface ChatTurn {
+  role: ChatTurnRole;
+  /** @maxLength 2000 */
+  content: string;
+}
+
 export interface ChatMessageInput {
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
   message: string;
   sessionId?: string;
+  /** @maxItems 20 */
+  history?: ChatTurn[];
 }
 
 export interface ChatResponse {

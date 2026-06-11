@@ -5,8 +5,15 @@
  * Social Vista API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ChatTurn } from './chatTurn';
 
 export interface ChatMessageInput {
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
   message: string;
   sessionId?: string;
+  /** @maxItems 20 */
+  history?: ChatTurn[];
 }

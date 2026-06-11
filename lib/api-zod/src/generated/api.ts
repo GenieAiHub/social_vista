@@ -207,9 +207,21 @@ export const UpsertContentResponse = zod.object({
 /**
  * @summary Send a chat message to AI assistant
  */
+export const sendChatMessageBodyMessageMax = 2000;
+
+export const sendChatMessageBodyHistoryItemContentMax = 2000;
+
+export const sendChatMessageBodyHistoryMax = 20;
+
+
+
 export const SendChatMessageBody = zod.object({
-  "message": zod.string(),
-  "sessionId": zod.string().optional()
+  "message": zod.string().min(1).max(sendChatMessageBodyMessageMax),
+  "sessionId": zod.string().optional(),
+  "history": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string().max(sendChatMessageBodyHistoryItemContentMax)
+})).max(sendChatMessageBodyHistoryMax).optional()
 })
 
 export const SendChatMessageResponse = zod.object({
