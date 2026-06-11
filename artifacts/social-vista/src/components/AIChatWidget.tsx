@@ -48,12 +48,12 @@ export default function AIChatWidget() {
       {open && (
         <div
           className="w-[360px] h-[520px] bg-card border border-primary/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-          style={{ boxShadow: "0 0 40px hsl(263 70% 58% / 0.2)" }}
+          style={{ boxShadow: "0 20px 50px hsl(335 85% 55% / 0.25)" }}
           data-testid="chat-panel"
         >
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 bg-primary/10 border-b border-primary/20">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center glow-primary">
+            <div className="w-8 h-8 rounded-full bg-gradient-brand flex items-center justify-center glow-primary">
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -141,7 +141,7 @@ export default function AIChatWidget() {
       {/* Toggle button */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-2xl glow-primary hover:scale-105 transition-transform"
+        className="w-14 h-14 rounded-full bg-gradient-brand flex items-center justify-center shadow-2xl glow-primary hover:scale-105 transition-transform"
         data-testid="button-chat-toggle"
         aria-label="Open AI chat"
       >

@@ -65,7 +65,7 @@ export default function Contact() {
           <div className="grid lg:grid-cols-5 gap-12">
             {/* Info */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-card card-glow rounded-2xl p-6">
+              <div className="bg-card card-soft rounded-2xl p-6">
                 <h3 className="font-semibold text-foreground mb-5 text-lg">Contact Details</h3>
                 <div className="space-y-4">
                   {[
@@ -86,7 +86,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="bg-card card-glow rounded-2xl p-6">
+              <div className="bg-card card-soft rounded-2xl p-6">
                 <h3 className="font-semibold text-foreground mb-3">Response Time</h3>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -103,7 +103,7 @@ export default function Contact() {
             {/* Form */}
             <div className="lg:col-span-3">
               {submitted ? (
-                <div className="bg-card rounded-2xl p-12 text-center card-glow h-full flex flex-col items-center justify-center">
+                <div className="bg-card rounded-2xl p-12 text-center card-soft h-full flex flex-col items-center justify-center">
                   <div className="w-16 h-16 rounded-full bg-green-400/10 border border-green-400/30 flex items-center justify-center mb-5 glow-accent">
                     <CheckCircle className="w-8 h-8 text-green-400" />
                   </div>
@@ -112,7 +112,7 @@ export default function Contact() {
                     Thank you for reaching out. Our team will review your message and get back to you shortly.
                   </p>
                   <Button
-                    className="mt-8 bg-primary hover:bg-primary/90 text-white"
+                    className="mt-8 bg-primary hover:bg-primary/90 text-white rounded-full px-6"
                     onClick={() => { setSubmitted(false); form.reset(); }}
                     data-testid="button-send-another"
                   >
@@ -120,7 +120,7 @@ export default function Contact() {
                   </Button>
                 </div>
               ) : (
-                <div className="bg-card rounded-2xl p-8 card-glow">
+                <div className="bg-card rounded-2xl p-8 card-soft">
                   <h3 className="font-semibold text-foreground text-xl mb-6">Tell Us About Your Project</h3>
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -214,7 +214,7 @@ export default function Contact() {
 
                       <Button
                         type="submit"
-                        className="w-full bg-primary hover:bg-primary/90 text-white font-semibold glow-primary py-6"
+                        className="w-full bg-primary hover:bg-primary/90 text-white font-semibold glow-primary py-6 rounded-full"
                         disabled={submitContact.isPending}
                         data-testid="button-contact-submit"
                       >

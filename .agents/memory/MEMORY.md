@@ -1,0 +1,2 @@
+- [Postgres serial sequence sync](postgres-serial-sequence-sync.md) — copying rows with explicit IDs leaves the serial sequence stale; setval it or future inserts collide.
+- [Social Vista service pages](social-vista-service-pages.md) — per-service landing content is a frontend map keyed by slugify(title); DB services table has no slug/benefits/image columns.

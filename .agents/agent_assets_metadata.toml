@@ -6,3 +6,63 @@ id = "gzGtXFecTNuEo_AmuqMor"
 uri = "file://artifacts/social-vista/src/assets/hero-bg.png"
 type = "image"
 title = "generated_image"
+
+[[generated]]
+id = "CEYbc65hmxEzjd_4DkdLF"
+uri = "file://artifacts/social-vista/src/assets/hero-illustration.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "B6FJ2GyRsXFF51yFO5pT-"
+uri = "file://artifacts/social-vista/src/assets/services/social-media-management.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "xQAaDu7vZz02hvqyAc3EX"
+uri = "file://artifacts/social-vista/src/assets/services/whatsapp-chatbot.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Imseeqv2EzaLYxIoftRUH"
+uri = "file://artifacts/social-vista/src/assets/services/whatsapp-messaging-campaigns.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "5sd6TV87oks0LxYJ6ZFRK"
+uri = "file://artifacts/social-vista/src/assets/services/zoom-meetings-manager.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "sKEX71CBtWf4tLU0Mq7S6"
+uri = "file://artifacts/social-vista/src/assets/services/software-consultancy.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "rmwGcfLuyZgRwc-qcYkPb"
+uri = "file://artifacts/social-vista/src/assets/services/crypto-web3-projects.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "usQcM0-BPy7Xs88r-4i8Z"
+uri = "file://artifacts/social-vista/src/assets/services/saas-development.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "lD6IuIujC7sL49XsxL5sO"
+uri = "file://artifacts/social-vista/src/assets/services/content-creation-influencer-marketing.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "oZ1VEBAKFO8ukYq-0rs_U"
+uri = "file://artifacts/social-vista/src/assets/services/email-marketing.png"
+type = "image"
+title = "generated_image"

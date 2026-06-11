@@ -1,17 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Share2, Bot, MessageCircle, Video, Code2, Coins, Layers, PenTool, Star, TrendingUp, Users, Globe, CheckCircle } from "lucide-react";
-import { SiInstagram, SiX, SiFacebook, SiTiktok } from "react-icons/si";
+import { ArrowRight, Globe, TrendingUp, Users, Bot, CheckCircle, Star, Sparkles } from "lucide-react";
+import { SiInstagram, SiFacebook, SiX, SiTiktok } from "react-icons/si";
 import { Linkedin } from "lucide-react";
 import { useListServices, useListTestimonials } from "@workspace/api-client-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import heroBg from "@/assets/hero-bg.png";
-
-const iconMap: Record<string, React.ElementType> = {
-  Share2, Bot, MessageCircle, Video, Code2, Coins, Layers, PenTool,
-};
+import { iconMap, slugify } from "@/lib/services-content";
+import { Share2 } from "lucide-react";
+import heroIllustration from "@/assets/hero-illustration.png";
 
 function useCountUp(target: number, duration = 2000, start = false) {
   const [count, setCount] = useState(0);
@@ -56,59 +54,60 @@ export default function Home() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden grid-bg pt-16">
-        {/* Background image */}
-        <img
-          src={heroBg}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-        />
-        {/* Readability overlay */}
-        <div className="absolute inset-0 bg-background/70 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/30 to-background pointer-events-none" />
+      <section className="relative overflow-hidden pt-28 md:pt-36 pb-20">
+        <div className="blob bg-secondary w-[480px] h-[480px] -top-24 -left-24" />
+        <div className="blob bg-accent/15 w-[420px] h-[420px] top-10 -right-24" />
+        <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 
-        {/* Glow orbs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-secondary border border-primary/20 rounded-full px-4 py-1.5 text-xs text-primary font-semibold mb-6">
+              <Sparkles className="w-3.5 h-3.5" /> Your Full-Service Digital Growth Partner
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold font-serif leading-[1.05] mb-6">
+              Grow Louder.{" "}
+              <span className="text-gradient">Convert Faster.</span>{" "}
+              Lead Boldly.
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-xl leading-relaxed mb-8">
+              From social media mastery to SaaS development, Web3, and AI-powered automation — Social Vista helps your brand reach further and grow smarter.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/contact" data-testid="button-hero-cta">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-semibold glow-primary rounded-full px-8">
+                  Start Your Project <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+              <Link href="/services" data-testid="button-hero-services">
+                <Button size="lg" variant="outline" className="border-border hover:border-primary/50 hover:text-primary font-semibold rounded-full px-8 bg-background">
+                  Explore Services
+                </Button>
+              </Link>
+            </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold font-serif tracking-tight mb-6 leading-none">
-            Grow Louder.{" "}
-            <span className="text-gradient">Convert Faster.</span>
-            <br />Lead Boldly.
-          </h1>
-
-          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-            Social Vista is your full-service digital growth partner — from social media mastery to SaaS development, Web3, and AI-powered automation.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact" data-testid="button-hero-cta">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-semibold glow-primary px-8">
-                Start Your Project <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="/services" data-testid="button-hero-services">
-              <Button size="lg" variant="outline" className="border-border hover:border-primary/50 font-semibold px-8">
-                Explore Services
-              </Button>
-            </Link>
+            <div className="flex items-center gap-5 mt-10 text-muted-foreground/60">
+              <span className="text-xs font-medium text-muted-foreground">Across every platform</span>
+              <SiInstagram className="w-5 h-5 hover:text-primary transition-colors cursor-default" />
+              <SiFacebook className="w-5 h-5 hover:text-primary transition-colors cursor-default" />
+              <SiX className="w-5 h-5 hover:text-foreground transition-colors cursor-default" />
+              <Linkedin className="w-5 h-5 hover:text-primary transition-colors cursor-default" />
+              <SiTiktok className="w-5 h-5 hover:text-foreground transition-colors cursor-default" />
+            </div>
           </div>
 
-          {/* Platform logos */}
-          <div className="flex items-center justify-center gap-6 mt-14 text-muted-foreground/50">
-            <SiInstagram className="w-5 h-5 hover:text-pink-500 transition-colors cursor-default" />
-            <SiFacebook className="w-5 h-5 hover:text-blue-500 transition-colors cursor-default" />
-            <SiX className="w-5 h-5 hover:text-foreground transition-colors cursor-default" />
-            <Linkedin className="w-5 h-5 hover:text-blue-400 transition-colors cursor-default" />
-            <SiTiktok className="w-5 h-5 hover:text-foreground transition-colors cursor-default" />
+          <div className="relative">
+            <div className="blob bg-primary/15 w-72 h-72 top-8 left-8" />
+            <img
+              src={heroIllustration}
+              alt="Digital marketing team driving brand growth"
+              className="relative z-10 w-full max-w-lg mx-auto drop-shadow-xl"
+            />
           </div>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="py-16 border-y border-border bg-card/30">
+      <section className="py-14 border-y border-border bg-muted/40">
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8">
           <StatCard value={200} label="Brands Served" suffix="+" />
           <StatCard value={98} label="Client Satisfaction" suffix="%" />
@@ -120,10 +119,10 @@ export default function Home() {
       {/* Services preview */}
       <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-full px-4 py-1.5 text-xs text-accent font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5 text-xs text-accent font-semibold mb-4">
             <Globe className="w-3 h-3" /> What We Do
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold font-serif text-foreground mb-4">
+          <h2 className="text-3xl md:text-5xl font-bold font-serif text-foreground mb-4">
             Services Built for <span className="text-gradient">Modern Brands</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
@@ -132,29 +131,29 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featured.map((service, i) => {
+          {featured.map((service) => {
             const Icon = iconMap[service.icon] ?? Share2;
             return (
-              <div
-                key={service.id}
-                className="card-glow bg-card rounded-2xl p-6 group"
-                style={{ animationDelay: `${i * 80}ms` }}
-                data-testid={`card-service-${service.id}`}
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
-                  <Icon className="w-6 h-6 text-primary" />
+              <Link key={service.id} href={`/services/${slugify(service.title)}`} data-testid={`card-service-${service.id}`}>
+                <div className="card-soft bg-card rounded-2xl p-6 group cursor-pointer h-full">
+                  <div className="w-12 h-12 rounded-xl bg-secondary border border-primary/15 flex items-center justify-center mb-5 group-hover:bg-primary group-hover:border-primary transition-colors">
+                    <Icon className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
+                  </div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">{service.category}</div>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">{service.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">{service.description}</p>
+                  <span className="mt-4 inline-flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
+                    Learn more <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
                 </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-2">{service.category}</div>
-                <h3 className="text-lg font-semibold text-foreground mb-3">{service.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">{service.description}</p>
-              </div>
+              </Link>
             );
           })}
         </div>
 
         <div className="text-center mt-12">
           <Link href="/services" data-testid="button-view-all-services">
-            <Button variant="outline" size="lg" className="border-primary/40 hover:border-primary text-primary hover:bg-primary/10">
+            <Button variant="outline" size="lg" className="border-primary/40 hover:border-primary text-primary hover:bg-secondary rounded-full bg-background">
               View All Services <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </Link>
@@ -162,14 +161,14 @@ export default function Home() {
       </section>
 
       {/* Why Us */}
-      <section className="py-20 bg-card/20 border-y border-border">
+      <section className="py-20 bg-muted/40 border-y border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-full px-4 py-1.5 text-xs text-primary font-medium mb-5">
+              <div className="inline-flex items-center gap-2 bg-secondary border border-primary/20 rounded-full px-4 py-1.5 text-xs text-primary font-semibold mb-5">
                 <TrendingUp className="w-3 h-3" /> Why Social Vista
               </div>
-              <h2 className="text-4xl font-bold font-serif mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold font-serif mb-6">
                 We Build Brands That <span className="text-gradient">Dominate</span>
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-8">
@@ -177,14 +176,14 @@ export default function Home() {
               </p>
               <ul className="space-y-3">
                 {["Full-service team — strategy to execution", "AI-powered automation at every step", "Transparent reporting and real-time dashboards", "Dedicated account manager for every client"].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <li key={item} className="flex items-center gap-3 text-sm text-foreground/80">
                     <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
                     {item}
                   </li>
                 ))}
               </ul>
               <Link href="/contact" className="mt-8 inline-block" data-testid="button-why-cta">
-                <Button className="bg-primary hover:bg-primary/90 text-white mt-8">
+                <Button className="bg-primary hover:bg-primary/90 text-white mt-8 rounded-full px-6">
                   Let's Talk <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
@@ -196,8 +195,10 @@ export default function Home() {
                 { icon: Globe, label: "Global Reach", desc: "Multi-platform presence that scales" },
                 { icon: Bot, label: "AI Automation", desc: "Smart workflows that save time" },
               ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="bg-card card-glow rounded-xl p-5">
-                  <Icon className="w-6 h-6 text-accent mb-3" />
+                <div key={label} className="bg-card card-soft rounded-2xl p-5">
+                  <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center mb-3">
+                    <Icon className="w-5 h-5 text-accent" />
+                  </div>
                   <div className="font-semibold text-sm text-foreground mb-1">{label}</div>
                   <div className="text-xs text-muted-foreground">{desc}</div>
                 </div>
@@ -211,22 +212,22 @@ export default function Home() {
       {testimonials && testimonials.length > 0 && (
         <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-bold font-serif mb-3">
+            <h2 className="text-3xl md:text-4xl font-bold font-serif mb-3">
               Trusted by <span className="text-gradient">Top Brands</span>
             </h2>
             <p className="text-muted-foreground">Real results from real clients.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {testimonials.map((t) => (
-              <div key={t.id} className="bg-card card-glow rounded-2xl p-6" data-testid={`card-testimonial-${t.id}`}>
+              <div key={t.id} className="bg-card card-soft rounded-2xl p-6" data-testid={`card-testimonial-${t.id}`}>
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
                   ))}
                 </div>
                 <p className="text-foreground/90 leading-relaxed mb-5 text-sm">"{t.message}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-sm">
                     {t.name.charAt(0)}
                   </div>
                   <div>
@@ -241,21 +242,23 @@ export default function Home() {
       )}
 
       {/* CTA Banner */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-primary/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4">
-            Ready to Dominate <span className="text-gradient">Your Market?</span>
-          </h2>
-          <p className="text-muted-foreground mb-8 text-lg">
-            Join 200+ brands that chose Social Vista to grow smarter, faster, and louder.
-          </p>
-          <Link href="/contact" data-testid="button-final-cta">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-semibold glow-primary px-10 py-6 text-base">
-              Start Your Project Today <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
+      <section className="py-16 px-4">
+        <div className="relative overflow-hidden max-w-6xl mx-auto rounded-3xl bg-gradient-brand px-6 py-16 text-center">
+          <div className="blob bg-white/20 w-72 h-72 -top-16 -left-10" />
+          <div className="blob bg-white/10 w-72 h-72 -bottom-20 -right-10" />
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-5xl font-bold font-serif mb-4 text-white">
+              Ready to Dominate Your Market?
+            </h2>
+            <p className="text-white/85 mb-8 text-lg">
+              Join 200+ brands that chose Social Vista to grow smarter, faster, and louder.
+            </p>
+            <Link href="/contact" data-testid="button-final-cta">
+              <Button size="lg" className="bg-white hover:bg-white/90 text-primary font-semibold rounded-full px-10 py-6 text-base">
+                Start Your Project Today <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
