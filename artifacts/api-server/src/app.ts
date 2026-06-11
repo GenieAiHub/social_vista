@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import router from "./routes";
 import { logger } from "./lib/logger";
@@ -35,12 +36,15 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-// In production, serve the built React SPA for all non-API routes
-if (process.env.NODE_ENV === "production") {
-  const staticDir = path.resolve(__dirname, "../../social-vista/dist/public");
+// Serve the built React SPA for all non-API routes when a build is present.
+// Detect by file existence so this works regardless of NODE_ENV at runtime.
+const staticDir = path.resolve(__dirname, "../../social-vista/dist/public");
+const indexHtml = path.join(staticDir, "index.html");
+if (fs.existsSync(indexHtml)) {
   app.use(express.static(staticDir));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(staticDir, "index.html"));
+  // Express 5 no longer accepts a bare "*"; use a named splat wildcard.
+  app.get("/*splat", (_req, res) => {
+    res.sendFile(indexHtml);
   });
 }
 
