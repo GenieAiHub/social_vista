@@ -158,7 +158,9 @@ export const GetAdminStatsResponse = zod.object({
   "totalContacts": zod.number(),
   "unreadContacts": zod.number(),
   "totalServices": zod.number(),
-  "activeServices": zod.number()
+  "activeServices": zod.number(),
+  "totalLeads": zod.number(),
+  "newLeads": zod.number()
 })
 
 
@@ -172,7 +174,16 @@ export const AdminLoginBody = zod.object({
 
 export const AdminLoginResponse = zod.object({
   "success": zod.boolean(),
-  "token": zod.string()
+  "token": zod.string().optional(),
+  "user": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().nullish(),
+  "role": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string()
+}).optional()
 })
 
 
@@ -241,5 +252,187 @@ export const ListTestimonialsResponseItem = zod.object({
   "avatarUrl": zod.string().nullish()
 })
 export const ListTestimonialsResponse = zod.array(ListTestimonialsResponseItem)
+
+
+/**
+ * @summary Get the currently authenticated staff user
+ */
+export const GetCurrentUserResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().nullish(),
+  "role": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List leads (admin)
+ */
+export const ListLeadsQueryParams = zod.object({
+  "status": zod.coerce.string().optional(),
+  "source": zod.coerce.string().optional()
+})
+
+export const ListLeadsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "serviceInterest": zod.string().nullish(),
+  "message": zod.string().nullish(),
+  "preferredTime": zod.string().nullish(),
+  "adminNotes": zod.string().nullish(),
+  "status": zod.string(),
+  "source": zod.string(),
+  "assignedTo": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListLeadsResponse = zod.array(ListLeadsResponseItem)
+
+
+/**
+ * @summary Create a lead (admin)
+ */
+export const CreateLeadBody = zod.object({
+  "name": zod.string(),
+  "email": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "serviceInterest": zod.string().optional(),
+  "message": zod.string().optional(),
+  "preferredTime": zod.string().optional(),
+  "source": zod.string().optional()
+})
+
+
+/**
+ * @summary Update a lead (admin)
+ */
+export const UpdateLeadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateLeadBody = zod.object({
+  "status": zod.enum(['new', 'contacted', 'booked', 'closed']).optional(),
+  "assignedTo": zod.number().nullish(),
+  "adminNotes": zod.string().optional()
+})
+
+export const UpdateLeadResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "serviceInterest": zod.string().nullish(),
+  "message": zod.string().nullish(),
+  "preferredTime": zod.string().nullish(),
+  "adminNotes": zod.string().nullish(),
+  "status": zod.string(),
+  "source": zod.string(),
+  "assignedTo": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a lead (admin)
+ */
+export const DeleteLeadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteLeadResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary List staff members (admin)
+ */
+export const ListStaffResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().nullish(),
+  "role": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListStaffResponse = zod.array(ListStaffResponseItem)
+
+
+/**
+ * @summary Create a staff member (owner only)
+ */
+export const CreateStaffBody = zod.object({
+  "name": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().optional(),
+  "password": zod.string(),
+  "role": zod.enum(['owner', 'staff']).optional()
+})
+
+
+/**
+ * @summary Update a staff member (owner only)
+ */
+export const UpdateStaffParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateStaffBody = zod.object({
+  "name": zod.string().optional(),
+  "email": zod.string().optional(),
+  "role": zod.enum(['owner', 'staff']).optional(),
+  "active": zod.boolean().optional()
+})
+
+export const UpdateStaffResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().nullish(),
+  "role": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a staff member (owner only)
+ */
+export const DeleteStaffParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteStaffResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Reset a staff member's password (owner only)
+ */
+export const ResetStaffPasswordParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ResetStaffPasswordBody = zod.object({
+  "password": zod.string()
+})
+
+export const ResetStaffPasswordResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().nullish(),
+  "role": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string()
+})
 
 

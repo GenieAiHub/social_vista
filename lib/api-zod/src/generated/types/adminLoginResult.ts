@@ -5,8 +5,10 @@
  * Social Vista API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { StaffMember } from './staffMember';
 
 export interface AdminLoginResult {
   success: boolean;
-  token: string;
+  token?: string;
+  user?: StaffMember;
 }

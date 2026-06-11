@@ -11,4 +11,6 @@ export interface AdminStats {
   unreadContacts: number;
   totalServices: number;
   activeServices: number;
+  totalLeads: number;
+  newLeads: number;
 }

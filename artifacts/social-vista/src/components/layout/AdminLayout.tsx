@@ -1,21 +1,27 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Zap, Menu, X } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Zap, Menu, X, Users, UserCog } from "lucide-react";
 import { useState } from "react";
+import { clearAuth, getStoredUser } from "@/lib/admin-auth";
 
 const navItems = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Services", href: "/admin/services", icon: Settings },
-  { label: "Content", href: "/admin/content", icon: FileText },
-  { label: "Contacts", href: "/admin/contacts", icon: MessageSquare },
-  { label: "Theme", href: "/admin/theme", icon: Palette },
+  { label: "Dashboard", href: "/admin", icon: LayoutDashboard, ownerOnly: false },
+  { label: "Leads", href: "/admin/leads", icon: Users, ownerOnly: false },
+  { label: "Services", href: "/admin/services", icon: Settings, ownerOnly: false },
+  { label: "Content", href: "/admin/content", icon: FileText, ownerOnly: false },
+  { label: "Contacts", href: "/admin/contacts", icon: MessageSquare, ownerOnly: false },
+  { label: "Theme", href: "/admin/theme", icon: Palette, ownerOnly: false },
+  { label: "Staff", href: "/admin/staff", icon: UserCog, ownerOnly: true },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const user = getStoredUser();
+  const isOwner = user?.role === "owner";
+  const visibleNav = navItems.filter((item) => !item.ownerOnly || isOwner);
 
   function logout() {
-    localStorage.removeItem("sv_admin_token");
+    clearAuth();
     setLocation("/admin/login");
   }
 
@@ -37,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <nav className="flex-1 p-4 space-y-1">
           <p className="text-xs text-muted-foreground uppercase tracking-wider px-3 mb-3 font-medium">CMS</p>
-          {navItems.map(({ label, href, icon: Icon }) => (
+          {visibleNav.map(({ label, href, icon: Icon }) => (
             <Link key={href} href={href} data-testid={`link-admin-${label.toLowerCase()}`}>
               <span
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
@@ -83,8 +89,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
           <span className="text-sm text-muted-foreground font-medium">Admin Portal</span>
-          <div className="ml-auto">
-            <span className="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-medium">Administrator</span>
+          <div className="ml-auto flex items-center gap-3">
+            {user?.name && <span className="text-sm text-foreground font-medium hidden sm:inline">{user.name}</span>}
+            <span className="text-xs bg-primary/15 text-primary px-2.5 py-1 rounded-full font-medium capitalize">{user?.role ?? "Staff"}</span>
           </div>
         </header>
 

@@ -1,6 +1,7 @@
 import { format } from "date-fns";
-import { Mail, Settings, TrendingUp, Eye, MailOpen, CheckCircle } from "lucide-react";
-import { useGetAdminStats, useListContacts, useMarkContactRead, getListContactsQueryKey } from "@workspace/api-client-react";
+import { Link } from "wouter";
+import { Mail, Settings, TrendingUp, MailOpen, CheckCircle, Users, Sparkles } from "lucide-react";
+import { useGetAdminStats, useListContacts, useListLeads, useMarkContactRead, getListContactsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +10,12 @@ import { Button } from "@/components/ui/button";
 export default function AdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useGetAdminStats();
   const { data: contacts } = useListContacts();
+  const { data: leads } = useListLeads();
   const markRead = useMarkContactRead();
   const queryClient = useQueryClient();
 
   const recent = contacts?.slice(0, 5) ?? [];
+  const recentLeads = leads?.slice(0, 5) ?? [];
 
   function handleMarkRead(id: number) {
     markRead.mutate(
@@ -22,6 +25,8 @@ export default function AdminDashboard() {
   }
 
   const statCards = [
+    { label: "Total Leads", value: stats?.totalLeads ?? 0, icon: Users, color: "text-primary", bg: "bg-primary/10" },
+    { label: "New Leads", value: stats?.newLeads ?? 0, icon: Sparkles, color: "text-pink-400", bg: "bg-pink-400/10" },
     { label: "Total Contacts", value: stats?.totalContacts ?? 0, icon: Mail, color: "text-blue-400", bg: "bg-blue-400/10" },
     { label: "Unread Messages", value: stats?.unreadContacts ?? 0, icon: MailOpen, color: "text-violet-400", bg: "bg-violet-400/10" },
     { label: "Total Services", value: stats?.totalServices ?? 0, icon: Settings, color: "text-green-400", bg: "bg-green-400/10" },
@@ -37,7 +42,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {statCards.map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="bg-card rounded-xl p-5 border border-border" data-testid={`stat-${label.toLowerCase().replace(/ /g, "-")}`}>
               <div className="flex items-center justify-between mb-3">
@@ -53,6 +58,43 @@ export default function AdminDashboard() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* Recent leads */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h2 className="font-semibold text-foreground">Recent Leads</h2>
+            <Link href="/admin/leads">
+              <Button variant="ghost" size="sm" className="h-7 text-xs" data-testid="link-view-all-leads">View all</Button>
+            </Link>
+          </div>
+          <div className="divide-y divide-border">
+            {recentLeads.length === 0 ? (
+              <div className="px-6 py-10 text-center text-muted-foreground text-sm">No leads yet — the AI assistant and contact form will fill this up.</div>
+            ) : (
+              recentLeads.map((l) => (
+                <div key={l.id} className={`px-6 py-4 flex items-start justify-between gap-4 ${l.status === "new" ? "bg-primary/5" : ""}`} data-testid={`row-lead-${l.id}`}>
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                      {l.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm text-foreground">{l.name}</span>
+                        <Badge variant="outline" className="text-[10px] capitalize">{l.status}</Badge>
+                        <Badge variant="secondary" className="text-[10px] capitalize">{l.source}</Badge>
+                      </div>
+                      {l.serviceInterest && <div className="text-xs text-foreground/70 mt-1">{l.serviceInterest}</div>}
+                      {l.message && <div className="text-xs text-foreground/70 mt-1 truncate max-w-xs">{l.message}</div>}
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                    {format(new Date(l.createdAt), "MMM d")}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {/* Recent contacts */}

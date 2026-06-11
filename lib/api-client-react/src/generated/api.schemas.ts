@@ -64,6 +64,8 @@ export interface AdminStats {
   unreadContacts: number;
   totalServices: number;
   activeServices: number;
+  totalLeads: number;
+  newLeads: number;
 }
 
 export interface AdminLoginInput {
@@ -71,9 +73,106 @@ export interface AdminLoginInput {
   password: string;
 }
 
+export interface StaffMember {
+  id: number;
+  name: string;
+  username: string;
+  /** @nullable */
+  email?: string | null;
+  role: string;
+  active: boolean;
+  createdAt: string;
+}
+
 export interface AdminLoginResult {
   success: boolean;
-  token: string;
+  token?: string;
+  user?: StaffMember;
+}
+
+export type StaffInputRole = typeof StaffInputRole[keyof typeof StaffInputRole];
+
+
+export const StaffInputRole = {
+  owner: 'owner',
+  staff: 'staff',
+} as const;
+
+export interface StaffInput {
+  name: string;
+  username: string;
+  email?: string;
+  password: string;
+  role?: StaffInputRole;
+}
+
+export type StaffUpdateRole = typeof StaffUpdateRole[keyof typeof StaffUpdateRole];
+
+
+export const StaffUpdateRole = {
+  owner: 'owner',
+  staff: 'staff',
+} as const;
+
+export interface StaffUpdate {
+  name?: string;
+  email?: string;
+  role?: StaffUpdateRole;
+  active?: boolean;
+}
+
+export interface StaffPasswordInput {
+  password: string;
+}
+
+export interface Lead {
+  id: number;
+  name: string;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  serviceInterest?: string | null;
+  /** @nullable */
+  message?: string | null;
+  /** @nullable */
+  preferredTime?: string | null;
+  /** @nullable */
+  adminNotes?: string | null;
+  status: string;
+  source: string;
+  /** @nullable */
+  assignedTo?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LeadInput {
+  name: string;
+  email?: string;
+  phone?: string;
+  serviceInterest?: string;
+  message?: string;
+  preferredTime?: string;
+  source?: string;
+}
+
+export type LeadUpdateStatus = typeof LeadUpdateStatus[keyof typeof LeadUpdateStatus];
+
+
+export const LeadUpdateStatus = {
+  new: 'new',
+  contacted: 'contacted',
+  booked: 'booked',
+  closed: 'closed',
+} as const;
+
+export interface LeadUpdate {
+  status?: LeadUpdateStatus;
+  /** @nullable */
+  assignedTo?: number | null;
+  adminNotes?: string;
 }
 
 export interface ContentBlock {
@@ -130,4 +229,9 @@ export interface Testimonial {
 export interface DeleteResult {
   success: boolean;
 }
+
+export type ListLeadsParams = {
+status?: string;
+source?: string;
+};
 

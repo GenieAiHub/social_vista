@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { db, contactsTable } from "@workspace/db";
+import { db, contactsTable, leadsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import {
   SubmitContactBody,
   ListContactsResponse,
   MarkContactReadParams,
 } from "@workspace/api-zod";
+import { requireAuth } from "../lib/auth.js";
 
 const router = Router();
 
@@ -19,6 +20,20 @@ router.post("/contact", async (req, res) => {
       message: body.message,
       service: body.service ?? null,
     }).returning();
+    // Mirror every contact submission into the leads pipeline so staff can
+    // track and follow up from one place.
+    try {
+      await db.insert(leadsTable).values({
+        name: body.name,
+        email: body.email,
+        phone: body.phone ?? null,
+        serviceInterest: body.service ?? null,
+        message: body.message,
+        source: "contact",
+      });
+    } catch (leadErr) {
+      req.log.error({ err: leadErr }, "Failed to create lead from contact");
+    }
     res.status(201).json({ ...contact, createdAt: contact.createdAt.toISOString() });
   } catch (err) {
     req.log.error({ err }, "Failed to submit contact");
@@ -26,7 +41,7 @@ router.post("/contact", async (req, res) => {
   }
 });
 
-router.get("/admin/contacts", async (req, res) => {
+router.get("/admin/contacts", requireAuth, async (req, res) => {
   try {
     const contacts = await db
       .select()
@@ -42,7 +57,7 @@ router.get("/admin/contacts", async (req, res) => {
   }
 });
 
-router.patch("/admin/contacts/:id/read", async (req, res) => {
+router.patch("/admin/contacts/:id/read", requireAuth, async (req, res) => {
   try {
     const { id } = MarkContactReadParams.parse({ id: Number(req.params.id) });
     const [contact] = await db

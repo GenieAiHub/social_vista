@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { Lock } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useAdminLogin } from "@workspace/api-client-react";
+import { setAuth } from "@/lib/admin-auth";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -32,8 +33,8 @@ export default function AdminLogin() {
       { data: values },
       {
         onSuccess: (data) => {
-          if (data.success) {
-            localStorage.setItem("sv_admin_token", data.token);
+          if (data.success && data.token && data.user) {
+            setAuth(data.token, data.user);
             setLocation("/admin");
           } else {
             toast({ title: "Invalid credentials. Please try again.", variant: "destructive" });

@@ -22,15 +22,24 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- DB schema (source of truth): `lib/db/src/schema/*` (e.g. `staff.ts`, `leads.ts`, `contacts.ts`, `services.ts`), re-exported from `lib/db/src/schema/index.ts`
+- API contract (source of truth): `lib/api-spec/openapi.yaml` → codegen produces `@workspace/api-client-react` (React Query hooks) and `@workspace/api-zod` (Zod schemas)
+- Server routes: `artifacts/api-server/src/routes/*`, registered in `routes/index.ts`
+- Auth helpers + middleware: `artifacts/api-server/src/lib/auth.ts`
+- Client admin auth (token + user storage): `artifacts/social-vista/src/lib/admin-auth.ts`
+- Admin pages: `artifacts/social-vista/src/pages/admin/*`; route wiring + auth guards in `artifacts/social-vista/src/App.tsx`
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Contract-first: edit `openapi.yaml`, run `pnpm --filter @workspace/api-spec run codegen`, then wire server (Zod-validated) and client (generated hooks). Do not hand-write API types.
+- Auth is JWT (HS256, signed with `SESSION_SECRET`, 7-day TTL). `requireAuth` revalidates the staff row against the DB on every request (existence + `active`) so deactivated/deleted/demoted accounts lose access immediately rather than at token expiry. `requireOwner` reads the DB-backed role.
+- Roles: `owner` (full access incl. staff management) and `staff`. The system protects against removing the last active owner (demote/deactivate/delete).
+- Lead capture has two sources: the AI chat assistant (Groq tool-calling `save_consultation_lead`, two-pass completion) and the public contact form (mirrored to a lead with `source=contact`).
+- First-run bootstrap: `seedOwner()` creates an owner from `ADMIN_USERNAME`/`ADMIN_PASSWORD` (defaults `admin`/`socialvista2024`) only when no staff exist; logs a warning when defaults are used.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Social Vista is a social media agency website with a public marketing site (services, AI chat assistant "Powered by GNX AI") and an admin portal. Admins manage services, site content, theme, contact inquiries, and leads. Leads are captured automatically from the AI chat and contact form, then triaged in the admin (status, source filter, staff assignment, internal notes). Owners additionally manage staff accounts (create, role, activate/deactivate, password reset).
 
 ## User preferences
 
@@ -38,7 +47,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Deploy: prod runs on Railway (auto-deploy from GitHub) against Neon Postgres; dev uses Replit Postgres. Code changes only reach prod after pushing to GitHub.
+- After seeding/importing rows into the Neon prod DB, resync serial sequences (`SELECT setval(...)`) or inserts will collide on duplicate ids.
+- Set `ADMIN_USERNAME`/`ADMIN_PASSWORD` in prod before first deploy, or change the seeded owner password immediately after first login.
 
 ## Pointers
 

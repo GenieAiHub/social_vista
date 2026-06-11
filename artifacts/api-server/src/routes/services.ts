@@ -10,6 +10,7 @@ import {
   UpdateServiceBody,
   DeleteServiceParams,
 } from "@workspace/api-zod";
+import { requireAuth } from "../lib/auth.js";
 
 const router = Router();
 
@@ -29,7 +30,7 @@ router.get("/services", async (req, res) => {
   }
 });
 
-router.post("/services", async (req, res) => {
+router.post("/services", requireAuth, async (req, res) => {
   try {
     const body = CreateServiceBody.parse(req.body);
     const [service] = await db.insert(servicesTable).values({
@@ -59,7 +60,7 @@ router.get("/services/:id", async (req, res) => {
   }
 });
 
-router.patch("/services/:id", async (req, res) => {
+router.patch("/services/:id", requireAuth, async (req, res) => {
   try {
     const { id } = UpdateServiceParams.parse({ id: Number(req.params.id) });
     const body = UpdateServiceBody.parse(req.body);
@@ -76,7 +77,7 @@ router.patch("/services/:id", async (req, res) => {
   }
 });
 
-router.delete("/services/:id", async (req, res) => {
+router.delete("/services/:id", requireAuth, async (req, res) => {
   try {
     const { id } = DeleteServiceParams.parse({ id: Number(req.params.id) });
     await db.delete(servicesTable).where(eq(servicesTable.id, id));

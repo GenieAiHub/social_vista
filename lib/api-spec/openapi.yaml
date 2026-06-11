@@ -274,6 +274,203 @@ paths:
                 items:
                   $ref: "#/components/schemas/Testimonial"
 
+  /admin/me:
+    get:
+      operationId: getCurrentUser
+      tags: [admin]
+      summary: Get the currently authenticated staff user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+
+  /admin/leads:
+    get:
+      operationId: listLeads
+      tags: [admin]
+      summary: List leads (admin)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lead"
+    post:
+      operationId: createLead
+      tags: [admin]
+      summary: Create a lead (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /admin/leads/{id}:
+    patch:
+      operationId: updateLead
+      tags: [admin]
+      summary: Update a lead (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+    delete:
+      operationId: deleteLead
+      tags: [admin]
+      summary: Delete a lead (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /admin/staff:
+    get:
+      operationId: listStaff
+      tags: [admin]
+      summary: List staff members (admin)
+      responses:
+        "200":
+          description: List of staff
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StaffMember"
+    post:
+      operationId: createStaff
+      tags: [admin]
+      summary: Create a staff member (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+
+  /admin/staff/{id}:
+    patch:
+      operationId: updateStaff
+      tags: [admin]
+      summary: Update a staff member (owner only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+    delete:
+      operationId: deleteStaff
+      tags: [admin]
+      summary: Delete a staff member (owner only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /admin/staff/{id}/password:
+    patch:
+      operationId: resetStaffPassword
+      tags: [admin]
+      summary: Reset a staff member's password (owner only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffPasswordInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+
 components:
   schemas:
     HealthStatus:
@@ -376,7 +573,7 @@ components:
 
     AdminStats:
       type: object
-      required: [totalContacts, unreadContacts, totalServices, activeServices]
+      required: [totalContacts, unreadContacts, totalServices, activeServices, totalLeads, newLeads]
       properties:
         totalContacts:
           type: integer
@@ -385,6 +582,10 @@ components:
         totalServices:
           type: integer
         activeServices:
+          type: integer
+        totalLeads:
+          type: integer
+        newLeads:
           type: integer
 
     AdminLoginInput:
@@ -398,11 +599,129 @@ components:
 
     AdminLoginResult:
       type: object
-      required: [success, token]
+      required: [success]
       properties:
         success:
           type: boolean
         token:
+          type: string
+        user:
+          $ref: "#/components/schemas/StaffMember"
+
+    StaffMember:
+      type: object
+      required: [id, name, username, role, active, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        username:
+          type: string
+        email:
+          type: ["string", "null"]
+        role:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+
+    StaffInput:
+      type: object
+      required: [name, username, password]
+      properties:
+        name:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [owner, staff]
+
+    StaffUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [owner, staff]
+        active:
+          type: boolean
+
+    StaffPasswordInput:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+
+    Lead:
+      type: object
+      required: [id, name, status, source, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        serviceInterest:
+          type: ["string", "null"]
+        message:
+          type: ["string", "null"]
+        preferredTime:
+          type: ["string", "null"]
+        adminNotes:
+          type: ["string", "null"]
+        status:
+          type: string
+        source:
+          type: string
+        assignedTo:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    LeadInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        serviceInterest:
+          type: string
+        message:
+          type: string
+        preferredTime:
+          type: string
+        source:
+          type: string
+
+    LeadUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [new, contacted, booked, closed]
+        assignedTo:
+          type: ["integer", "null"]
+        adminNotes:
           type: string
 
     ContentBlock:

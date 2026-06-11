@@ -1,5 +1,6 @@
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
+import { setAuthTokenGetter, ApiError } from "@workspace/api-client-react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
@@ -17,19 +18,46 @@ import AdminDashboard from "@/pages/admin/Dashboard";
 import AdminServices from "@/pages/admin/ServicesAdmin";
 import AdminContent from "@/pages/admin/ContentAdmin";
 import AdminContacts from "@/pages/admin/ContactsAdmin";
+import AdminLeads from "@/pages/admin/LeadsAdmin";
+import AdminStaff from "@/pages/admin/StaffAdmin";
 import AdminTheme from "@/pages/admin/ThemeAdmin";
 import AIChatWidget from "@/components/AIChatWidget";
 import ThemeApplier from "@/components/ThemeApplier";
+import { getToken, clearAuth, isAuthenticated, isOwner } from "@/lib/admin-auth";
 
-const queryClient = new QueryClient();
+// Attach the stored bearer token to every API request.
+setAuthTokenGetter(() => getToken());
 
-function isAdminAuthenticated() {
-  return !!localStorage.getItem("sv_admin_token");
+function handleAuthError(error: unknown) {
+  if (
+    error instanceof ApiError &&
+    error.status === 401 &&
+    getToken() &&
+    !window.location.pathname.endsWith("/admin/login")
+  ) {
+    clearAuth();
+    window.location.assign(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/admin/login`);
+  }
 }
 
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: handleAuthError }),
+  mutationCache: new MutationCache({ onError: handleAuthError }),
+});
+
 function AdminGuard({ children }: { children: React.ReactNode }) {
-  if (!isAdminAuthenticated()) {
+  if (!isAuthenticated()) {
     return <Redirect to="/admin/login" />;
+  }
+  return <>{children}</>;
+}
+
+function OwnerGuard({ children }: { children: React.ReactNode }) {
+  if (!isAuthenticated()) {
+    return <Redirect to="/admin/login" />;
+  }
+  if (!isOwner()) {
+    return <Redirect to="/admin" />;
   }
   return <>{children}</>;
 }
@@ -60,6 +88,12 @@ function Router() {
         </Route>
         <Route path="/admin/contacts">
           <AdminGuard><AdminContacts /></AdminGuard>
+        </Route>
+        <Route path="/admin/leads">
+          <AdminGuard><AdminLeads /></AdminGuard>
+        </Route>
+        <Route path="/admin/staff">
+          <OwnerGuard><AdminStaff /></OwnerGuard>
         </Route>
         <Route path="/admin/theme">
           <AdminGuard><AdminTheme /></AdminGuard>
