@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/Logo";
 
 const links = [
   { label: "Home", href: "/" },
@@ -33,9 +34,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" data-testid="link-logo">
             <span className="flex items-center gap-2 cursor-pointer">
-              <span className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center glow-primary">
-                <Sparkles className="w-4 h-4 text-white" />
-              </span>
+              <Logo className="w-9 h-9 rounded-xl glow-primary" />
               <span className="font-bold text-xl tracking-tight text-gradient font-serif">Social Vista</span>
             </span>
           </Link>

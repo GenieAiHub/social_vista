@@ -1,6 +1,7 @@
 import { Link } from "wouter";
-import { Sparkles, Twitter, Linkedin, Instagram, Facebook } from "lucide-react";
+import { Twitter, Linkedin, Instagram, Facebook } from "lucide-react";
 import { slugify } from "@/lib/services-content";
+import Logo from "@/components/Logo";
 
 const footerServices = [
   "Social Media Management",
@@ -19,9 +20,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <span className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center glow-primary">
-                <Sparkles className="w-4 h-4 text-white" />
-              </span>
+              <Logo className="w-9 h-9 rounded-xl glow-primary" />
               <span className="font-bold text-xl text-gradient font-serif">Social Vista</span>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">

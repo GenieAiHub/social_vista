@@ -2,7 +2,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { Zap, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
+import Logo from "@/components/Logo";
 import { useAdminLogin } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -53,9 +54,7 @@ export default function AdminLogin() {
       <div className="relative z-10 w-full max-w-sm px-4">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center glow-primary mb-4">
-            <Zap className="w-7 h-7 text-white" />
-          </div>
+          <Logo className="w-14 h-14 rounded-2xl glow-primary mb-4" />
           <h1 className="text-2xl font-bold font-serif text-gradient">Social Vista</h1>
           <p className="text-muted-foreground text-sm mt-1">Admin Portal</p>
         </div>
