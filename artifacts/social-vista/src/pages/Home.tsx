@@ -7,6 +7,7 @@ import { useListServices, useListTestimonials } from "@workspace/api-client-reac
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
+import heroBg from "@/assets/hero-bg.png";
 
 const iconMap: Record<string, React.ElementType> = {
   Share2, Bot, MessageCircle, Video, Code2, Coins, Layers, PenTool,
@@ -56,6 +57,17 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden grid-bg pt-16">
+        {/* Background image */}
+        <img
+          src={heroBg}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        />
+        {/* Readability overlay */}
+        <div className="absolute inset-0 bg-background/70 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/30 to-background pointer-events-none" />
+
         {/* Glow orbs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
