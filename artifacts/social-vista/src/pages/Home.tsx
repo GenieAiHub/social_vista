@@ -73,11 +73,6 @@ export default function Home() {
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-full px-4 py-1.5 text-xs text-primary font-medium mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Next-Generation Digital Agency
-          </div>
-
           <h1 className="text-5xl md:text-7xl font-bold font-serif tracking-tight mb-6 leading-none">
             Grow Louder.{" "}
             <span className="text-gradient">Convert Faster.</span>
