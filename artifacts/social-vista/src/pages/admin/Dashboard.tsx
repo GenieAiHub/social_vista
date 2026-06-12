@@ -1,6 +1,6 @@
 import { format, formatDistanceToNow } from "date-fns";
 import { Link, useLocation } from "wouter";
-import { Mail, Settings, TrendingUp, MailOpen, CheckCircle, Users, Sparkles, History, ArrowRightLeft, UserCheck, StickyNote, CheckCircle2, Send, Activity as ActivityIcon } from "lucide-react";
+import { Mail, Settings, TrendingUp, MailOpen, CheckCircle, Users, Sparkles, History, ArrowRightLeft, UserCheck, StickyNote, CheckCircle2, Send, Activity as ActivityIcon, PlusCircle } from "lucide-react";
 import { useGetAdminStats, useListContacts, useListLeads, useMarkContactRead, useListRecentActivities, getListContactsQueryKey, type RecentActivity } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 const activityMeta: Record<string, { icon: typeof History; label: string; color: string }> = {
+  created: { icon: PlusCircle, label: "Created", color: "text-emerald-400" },
   status_change: { icon: ArrowRightLeft, label: "Status change", color: "text-primary" },
   assignment: { icon: UserCheck, label: "Assignment", color: "text-accent" },
   note: { icon: StickyNote, label: "Note", color: "text-amber-400" },

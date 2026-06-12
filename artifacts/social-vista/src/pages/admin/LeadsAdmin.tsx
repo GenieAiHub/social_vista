@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearch } from "wouter";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
-import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle, History, ArrowRightLeft, UserCheck, StickyNote, Activity as ActivityIcon, ChevronDown, ChevronUp } from "lucide-react";
+import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle, History, ArrowRightLeft, UserCheck, StickyNote, Activity as ActivityIcon, ChevronDown, ChevronUp, PlusCircle } from "lucide-react";
 import {
   useListLeads,
   useUpdateLead,
@@ -155,6 +155,7 @@ function ReplyDialog({ lead, onReplied }: { lead: Lead; onReplied: () => void })
 }
 
 const activityMeta: Record<string, { icon: typeof History; label: string; color: string }> = {
+  created: { icon: PlusCircle, label: "Created", color: "text-emerald-400" },
   status_change: { icon: ArrowRightLeft, label: "Status change", color: "text-primary" },
   assignment: { icon: UserCheck, label: "Assignment", color: "text-accent" },
   note: { icon: StickyNote, label: "Note", color: "text-amber-400" },

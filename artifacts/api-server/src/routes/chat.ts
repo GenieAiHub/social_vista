@@ -3,6 +3,7 @@ import Groq from "groq-sdk";
 import { db, servicesTable, leadsTable } from "@workspace/db";
 import { SendChatMessageBody } from "@workspace/api-zod";
 import { servicesKnowledge, normalizeKey } from "../lib/services-knowledge.js";
+import { logActivity, createdNoteForSource } from "./leads.js";
 import type {
   ChatCompletionMessageParam,
   ChatCompletionTool,
@@ -156,7 +157,7 @@ router.post("/chat", async (req, res) => {
         try {
           const args = JSON.parse(call.function.arguments || "{}") as LeadArgs;
           if (args.name && (args.email || args.phone)) {
-            await db.insert(leadsTable).values({
+            const [lead] = await db.insert(leadsTable).values({
               name: args.name,
               email: args.email ?? null,
               phone: args.phone ?? null,
@@ -164,7 +165,16 @@ router.post("/chat", async (req, res) => {
               preferredTime: args.preferredTime ?? null,
               message: args.message ?? null,
               source: "chat",
-            });
+            }).returning();
+            try {
+              await logActivity({
+                leadId: lead.id,
+                type: "created",
+                note: createdNoteForSource("chat"),
+              });
+            } catch (actErr) {
+              req.log.error({ err: actErr }, "Failed to record lead activity");
+            }
             leadCaptured = true;
             result = "Lead saved successfully. The team will follow up.";
           } else {

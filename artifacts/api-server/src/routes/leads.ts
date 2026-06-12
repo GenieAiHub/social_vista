@@ -41,11 +41,28 @@ function serializeActivity(a: LeadActivity) {
 }
 
 /**
+ * Human-readable note describing how a lead first entered the pipeline,
+ * keyed by its `source`. Used for the "created" timeline event.
+ */
+export function createdNoteForSource(source: string): string {
+  switch (source) {
+    case "chat":
+      return "Captured from AI chat assistant";
+    case "contact":
+      return "Captured from contact form";
+    case "manual":
+      return "Created manually by staff";
+    default:
+      return `Captured from ${source}`;
+  }
+}
+
+/**
  * Append an activity row to a lead's timeline. Fire-and-forget friendly:
  * timeline logging must never break the underlying lead operation, so callers
  * may `void` this and failures are swallowed by the caller's try/catch.
  */
-async function logActivity(input: {
+export async function logActivity(input: {
   leadId: number;
   type: string;
   note?: string | null;
@@ -80,7 +97,9 @@ router.get("/admin/leads", requireAuth, async (req, res) => {
 
 router.post("/admin/leads", requireAuth, async (req, res) => {
   try {
+    const author = (req as AuthedRequest).staff;
     const body = CreateLeadBody.parse(req.body);
+    const source = body.source ?? "manual";
     const [lead] = await db
       .insert(leadsTable)
       .values({
@@ -90,9 +109,19 @@ router.post("/admin/leads", requireAuth, async (req, res) => {
         serviceInterest: body.serviceInterest ?? null,
         message: body.message ?? null,
         preferredTime: body.preferredTime ?? null,
-        source: body.source ?? "manual",
+        source,
       })
       .returning();
+    try {
+      await logActivity({
+        leadId: lead.id,
+        type: "created",
+        note: createdNoteForSource(source),
+        author,
+      });
+    } catch (err) {
+      req.log.error({ err }, "Failed to record lead activity");
+    }
     res.status(201).json(serializeLead(lead));
   } catch (err) {
     req.log.error({ err }, "Failed to create lead");

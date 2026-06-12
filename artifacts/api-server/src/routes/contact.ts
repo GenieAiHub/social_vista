@@ -8,6 +8,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth.js";
 import { sendContactAutoReply, sendNewLeadNotification } from "../lib/email.js";
+import { logActivity, createdNoteForSource } from "./leads.js";
 
 const router = Router();
 
@@ -24,14 +25,23 @@ router.post("/contact", async (req, res) => {
     // Mirror every contact submission into the leads pipeline so staff can
     // track and follow up from one place.
     try {
-      await db.insert(leadsTable).values({
+      const [lead] = await db.insert(leadsTable).values({
         name: body.name,
         email: body.email,
         phone: body.phone ?? null,
         serviceInterest: body.service ?? null,
         message: body.message,
         source: "contact",
-      });
+      }).returning();
+      try {
+        await logActivity({
+          leadId: lead.id,
+          type: "created",
+          note: createdNoteForSource("contact"),
+        });
+      } catch (actErr) {
+        req.log.error({ err: actErr }, "Failed to record lead activity");
+      }
     } catch (leadErr) {
       req.log.error({ err: leadErr }, "Failed to create lead from contact");
     }
