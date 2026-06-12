@@ -50,6 +50,23 @@ const statusStyles: Record<string, string> = {
   closed: "bg-muted text-muted-foreground border-border",
 };
 
+// A lead "needs follow-up" when it's still open (not booked/closed) and has gone
+// too long without contact: 3+ days if never contacted, 7+ days since last touch.
+function isLeadStale(lead: Lead): boolean {
+  if (lead.status === "booked" || lead.status === "closed") return false;
+  const lastContacted = lead.lastContactedAt ? new Date(lead.lastContactedAt) : null;
+  if (!lastContacted) return differenceInDays(new Date(), new Date(lead.createdAt)) >= 3;
+  return differenceInDays(new Date(), lastContacted) >= 7;
+}
+
+// Effective "last touch" time for sorting: last contacted, falling back to when
+// the lead was created (never-contacted leads sort as the oldest contact).
+function effectiveContactTime(lead: Lead): number {
+  return lead.lastContactedAt
+    ? new Date(lead.lastContactedAt).getTime()
+    : new Date(lead.createdAt).getTime();
+}
+
 function ReplyDialog({ lead, onReplied }: { lead: Lead; onReplied: () => void }) {
   const replyToLead = useReplyToLead();
   const { toast } = useToast();
@@ -268,12 +285,7 @@ function LeadCard({
   }
 
   const lastContacted = lead.lastContactedAt ? new Date(lead.lastContactedAt) : null;
-  const isStale =
-    !lastContacted && lead.status !== "booked" && lead.status !== "closed"
-      ? differenceInDays(new Date(), new Date(lead.createdAt)) >= 3
-      : lastContacted && lead.status !== "booked" && lead.status !== "closed"
-        ? differenceInDays(new Date(), lastContacted) >= 7
-        : false;
+  const isStale = isLeadStale(lead);
 
   return (
     <div className="bg-card rounded-xl border border-border p-5" data-testid={`card-lead-${lead.id}`}>
@@ -438,6 +450,8 @@ export default function LeadsAdmin() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest_contact">("newest");
+  const [followUpOnly, setFollowUpOnly] = useState(false);
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
@@ -446,13 +460,22 @@ export default function LeadsAdmin() {
 
   const staffList = (staff ?? []).map((s) => ({ id: s.id, name: s.name }));
 
-  const filtered = (leads ?? []).filter((l) => {
-    if (statusFilter !== "all" && l.status !== statusFilter) return false;
-    if (sourceFilter !== "all" && l.source !== sourceFilter) return false;
-    return true;
-  });
+  const filtered = (leads ?? [])
+    .filter((l) => {
+      if (statusFilter !== "all" && l.status !== statusFilter) return false;
+      if (sourceFilter !== "all" && l.source !== sourceFilter) return false;
+      if (followUpOnly && !isLeadStale(l)) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "oldest_contact") {
+        return effectiveContactTime(a) - effectiveContactTime(b);
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   const newCount = (leads ?? []).filter((l) => l.status === "new").length;
+  const followUpCount = (leads ?? []).filter(isLeadStale).length;
 
   return (
     <AdminLayout>
@@ -462,9 +485,34 @@ export default function LeadsAdmin() {
             <h1 className="text-2xl font-bold font-serif text-foreground">Leads</h1>
             <p className="text-muted-foreground text-sm mt-1">
               {newCount > 0 ? <span className="text-primary font-medium">{newCount} new</span> : "All caught up"} · {leads?.length ?? 0} total
+              {followUpCount > 0 && (
+                <>
+                  {" · "}
+                  <span className="text-destructive font-medium" data-testid="text-followup-count">
+                    {followUpCount} need{followUpCount === 1 ? "s" : ""} follow-up
+                  </span>
+                </>
+              )}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant={followUpOnly ? "default" : "outline"}
+              className="h-9 gap-1.5"
+              onClick={() => setFollowUpOnly((v) => !v)}
+              data-testid="button-filter-followup"
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Needs follow-up{followUpCount > 0 ? ` (${followUpCount})` : ""}
+            </Button>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+              <SelectTrigger className="h-9 w-[170px]" data-testid="select-sort"><SelectValue placeholder="Sort" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="oldest_contact">Oldest contact first</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-9 w-[140px]" data-testid="select-filter-status"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
