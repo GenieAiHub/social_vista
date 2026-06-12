@@ -5,3 +5,4 @@
 - [Social Vista site map](social-vista-site-map.md) — nav (Home, Services▾, About, Blog, Pricing, Contact; FAQ route exists but unlinked), routes, and where page content lives (blog-content.ts, static pages).
 - [Social Vista color themes](social-vista-theme.md) — 3 site-wide palettes via data-theme + CSS-var overrides; persisted as content_blocks key=site_theme (no DB/API changes); admin picker at /admin/theme.
 - [Lead activities timeline](lead-activities-timeline.md) — per-lead interaction log auto-appended inside lead routes (status/note/assign/contacted/email) + manual entries; denormalized author_name.
+- [Codegen post-merge staleness](codegen-post-merge.md) — merges touching openapi.yaml can leave api-client-react/zod stale and break the admin bundle ("can't log in"); rerun codegen. post-merge.sh now does this.
