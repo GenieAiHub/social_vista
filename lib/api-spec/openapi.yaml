@@ -416,6 +416,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/LeadActivity"
 
+  /admin/activities:
+    get:
+      operationId: listRecentActivities
+      tags: [admin]
+      summary: List the most recent activities across all leads (admin)
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Most recent cross-lead activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecentActivity"
+
   /admin/leads/{id}/reply:
     post:
       operationId: replyToLead
@@ -819,6 +842,27 @@ components:
           type: integer
         leadId:
           type: integer
+        type:
+          type: string
+        note:
+          type: ["string", "null"]
+        authorId:
+          type: ["integer", "null"]
+        authorName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    RecentActivity:
+      type: object
+      required: [id, leadId, leadName, type, createdAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        leadName:
+          type: string
         type:
           type: string
         note:

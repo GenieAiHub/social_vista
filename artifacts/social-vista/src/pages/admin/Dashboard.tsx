@@ -1,21 +1,66 @@
-import { format } from "date-fns";
-import { Link } from "wouter";
-import { Mail, Settings, TrendingUp, MailOpen, CheckCircle, Users, Sparkles } from "lucide-react";
-import { useGetAdminStats, useListContacts, useListLeads, useMarkContactRead, getListContactsQueryKey } from "@workspace/api-client-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { Link, useLocation } from "wouter";
+import { Mail, Settings, TrendingUp, MailOpen, CheckCircle, Users, Sparkles, History, ArrowRightLeft, UserCheck, StickyNote, CheckCircle2, Send, Activity as ActivityIcon } from "lucide-react";
+import { useGetAdminStats, useListContacts, useListLeads, useMarkContactRead, useListRecentActivities, getListContactsQueryKey, type RecentActivity } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+const activityMeta: Record<string, { icon: typeof History; label: string; color: string }> = {
+  status_change: { icon: ArrowRightLeft, label: "Status change", color: "text-primary" },
+  assignment: { icon: UserCheck, label: "Assignment", color: "text-accent" },
+  note: { icon: StickyNote, label: "Note", color: "text-amber-400" },
+  contacted: { icon: CheckCircle2, label: "Contacted", color: "text-green-400" },
+  email: { icon: Send, label: "Email reply", color: "text-blue-400" },
+  log: { icon: ActivityIcon, label: "Log", color: "text-muted-foreground" },
+};
+
+function ActivityRow({ activity }: { activity: RecentActivity }) {
+  const [, setLocation] = useLocation();
+  const meta = activityMeta[activity.type] ?? activityMeta.log;
+  const Icon = meta.icon;
+  return (
+    <button
+      type="button"
+      onClick={() => setLocation(`/admin/leads?lead=${activity.leadId}`)}
+      className="w-full px-6 py-4 flex items-start gap-3 text-left hover:bg-muted/40 transition-colors"
+      data-testid={`row-activity-${activity.id}`}
+    >
+      <div className={`w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 ${meta.color}`}>
+        <Icon className="w-4 h-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium text-foreground">{meta.label}</span>
+          <span className="text-xs text-muted-foreground">on</span>
+          <span className="text-sm font-medium text-primary truncate">{activity.leadName}</span>
+        </div>
+        {activity.note && (
+          <p className="text-xs text-foreground/70 mt-0.5 leading-relaxed truncate">{activity.note}</p>
+        )}
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[11px] text-muted-foreground" title={format(new Date(activity.createdAt), "MMM d, yyyy 'at' h:mm a")}>
+            {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+          </span>
+          {activity.authorName && <span className="text-[11px] text-muted-foreground">· {activity.authorName}</span>}
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export default function AdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useGetAdminStats();
   const { data: contacts } = useListContacts();
   const { data: leads } = useListLeads();
+  const { data: activities, isLoading: activitiesLoading } = useListRecentActivities({ limit: 10 });
   const markRead = useMarkContactRead();
   const queryClient = useQueryClient();
 
   const recent = contacts?.slice(0, 5) ?? [];
   const recentLeads = leads?.slice(0, 5) ?? [];
+  const recentActivities = activities ?? [];
 
   function handleMarkRead(id: number) {
     markRead.mutate(
@@ -58,6 +103,35 @@ export default function AdminDashboard() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* Recent activity */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h2 className="font-semibold text-foreground flex items-center gap-2">
+              <History className="w-4 h-4 text-muted-foreground" /> Recent Activity
+            </h2>
+            <Link href="/admin/leads">
+              <Button variant="ghost" size="sm" className="h-7 text-xs" data-testid="link-view-all-leads-activity">View leads</Button>
+            </Link>
+          </div>
+          <div className="divide-y divide-border">
+            {activitiesLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="px-6 py-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-muted animate-pulse flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-1/3 bg-muted animate-pulse rounded" />
+                    <div className="h-3 w-1/2 bg-muted animate-pulse rounded" />
+                  </div>
+                </div>
+              ))
+            ) : recentActivities.length === 0 ? (
+              <div className="px-6 py-10 text-center text-muted-foreground text-sm">No activity yet — lead updates, replies, and notes will show up here.</div>
+            ) : (
+              recentActivities.map((a) => <ActivityRow key={a.id} activity={a} />)
+            )}
+          </div>
         </div>
 
         {/* Recent leads */}

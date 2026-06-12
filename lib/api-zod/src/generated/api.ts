@@ -390,6 +390,30 @@ export const CreateLeadActivityBody = zod.object({
 
 
 /**
+ * @summary List the most recent activities across all leads (admin)
+ */
+export const listRecentActivitiesQueryLimitMax = 100;
+
+
+
+export const ListRecentActivitiesQueryParams = zod.object({
+  "limit": zod.coerce.number().min(1).max(listRecentActivitiesQueryLimitMax).optional()
+})
+
+export const ListRecentActivitiesResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "leadName": zod.string(),
+  "type": zod.string(),
+  "note": zod.string().nullish(),
+  "authorId": zod.number().nullish(),
+  "authorName": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListRecentActivitiesResponse = zod.array(ListRecentActivitiesResponseItem)
+
+
+/**
  * @summary Send an email reply to a lead (admin)
  */
 export const ReplyToLeadParams = zod.object({

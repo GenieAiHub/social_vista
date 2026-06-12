@@ -11,4 +11,6 @@ Leads have a chronological interaction timeline backed by a `lead_activities` ta
 
 **Why denormalized author_name:** staff rows can be deleted/deactivated; the timeline should still show who did what historically.
 
-**How to apply:** when adding a new lead mutation that staff care about, append a matching activity row using the same in-route logging pattern, and pick a `type` string that has an entry in the frontend `activityMeta` map in LeadsAdmin.tsx (else it falls back to the generic "log" icon).
+**How to apply:** when adding a new lead mutation that staff care about, append a matching activity row using the same in-route logging pattern, and pick a `type` string that has an entry in the frontend `activityMeta` map (defined in BOTH LeadsAdmin.tsx and Dashboard.tsx — keep them in sync, else the type falls back to the generic "log" icon).
+
+**Cross-lead feed:** `GET /admin/activities?limit=N` (default 15) inner-joins activities to leads for a `leadName` and powers the dashboard "Recent Activity" card. Schema is `RecentActivity` in openapi. Clicking a feed row deep-links to `/admin/leads?lead=<id>`; LeadsAdmin reads that param via wouter `useSearch`, then highlights (ring), auto-expands the timeline, and scrolls the matching LeadCard into view. Note: a deep-linked lead hidden by active status/source filters won't render (default filters are "all").

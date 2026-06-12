@@ -27,6 +27,8 @@ export * from './leadReplyInput';
 export * from './leadUpdate';
 export * from './leadUpdateStatus';
 export * from './listLeadsParams';
+export * from './listRecentActivitiesParams';
+export * from './recentActivity';
 export * from './service';
 export * from './serviceInput';
 export * from './serviceUpdate';

@@ -205,6 +205,20 @@ export interface LeadActivity {
   createdAt: string;
 }
 
+export interface RecentActivity {
+  id: number;
+  leadId: number;
+  leadName: string;
+  type: string;
+  /** @nullable */
+  note?: string | null;
+  /** @nullable */
+  authorId?: number | null;
+  /** @nullable */
+  authorName?: string | null;
+  createdAt: string;
+}
+
 export interface LeadActivityInput {
   /**
      * @minLength 1
@@ -272,5 +286,13 @@ export interface DeleteResult {
 export type ListLeadsParams = {
 status?: string;
 source?: string;
+};
+
+export type ListRecentActivitiesParams = {
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
 };
 

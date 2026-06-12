@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearch } from "wouter";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
 import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle, History, ArrowRightLeft, UserCheck, StickyNote, Activity as ActivityIcon, ChevronDown, ChevronUp } from "lucide-react";
 import {
@@ -270,15 +271,25 @@ function LeadCard({
   lead,
   staff,
   onChanged,
+  highlight = false,
 }: {
   lead: Lead;
   staff: { id: number; name: string }[];
   onChanged: () => void;
+  highlight?: boolean;
 }) {
   const updateLead = useUpdateLead();
   const deleteLead = useDeleteLead();
   const [notes, setNotes] = useState(lead.adminNotes ?? "");
-  const [showTimeline, setShowTimeline] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(highlight);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (highlight && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      setShowTimeline(true);
+    }
+  }, [highlight]);
 
   function patch(data: { status?: Status; assignedTo?: number | null; adminNotes?: string; markContacted?: boolean }) {
     updateLead.mutate({ id: lead.id, data }, { onSuccess: onChanged });
@@ -288,7 +299,11 @@ function LeadCard({
   const isStale = isLeadStale(lead);
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5" data-testid={`card-lead-${lead.id}`}>
+    <div
+      ref={cardRef}
+      className={`bg-card rounded-xl border p-5 transition-shadow ${highlight ? "border-primary ring-2 ring-primary/40" : "border-border"}`}
+      data-testid={`card-lead-${lead.id}`}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4 min-w-0 flex-1">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold flex-shrink-0">
@@ -448,6 +463,12 @@ export default function LeadsAdmin() {
   const { data: leads, isLoading } = useListLeads();
   const { data: staff } = useListStaff();
   const queryClient = useQueryClient();
+  const search = useSearch();
+  const highlightId = (() => {
+    const raw = new URLSearchParams(search).get("lead");
+    const id = raw ? Number(raw) : NaN;
+    return Number.isFinite(id) ? id : null;
+  })();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest_contact">("newest");
@@ -548,7 +569,7 @@ export default function LeadsAdmin() {
         ) : (
           <div className="space-y-3">
             {filtered.map((lead) => (
-              <LeadCard key={lead.id} lead={lead} staff={staffList} onChanged={invalidate} />
+              <LeadCard key={lead.id} lead={lead} staff={staffList} onChanged={invalidate} highlight={highlightId === lead.id} />
             ))}
           </div>
         )}

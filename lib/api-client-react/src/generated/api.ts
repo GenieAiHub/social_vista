@@ -38,6 +38,8 @@ import type {
   LeadReplyInput,
   LeadUpdate,
   ListLeadsParams,
+  ListRecentActivitiesParams,
+  RecentActivity,
   Service,
   ServiceInput,
   ServiceUpdate,
@@ -1688,6 +1690,90 @@ export const useCreateLeadActivity = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getCreateLeadActivityMutationOptions(options));
     }
+
+export const getListRecentActivitiesUrl = (params?: ListRecentActivitiesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/activities?${stringifiedParams}` : `/api/admin/activities`
+}
+
+/**
+ * @summary List the most recent activities across all leads (admin)
+ */
+export const listRecentActivities = async (params?: ListRecentActivitiesParams, options?: RequestInit): Promise<RecentActivity[]> => {
+
+  return customFetch<RecentActivity[]>(getListRecentActivitiesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRecentActivitiesQueryKey = (params?: ListRecentActivitiesParams,) => {
+    return [
+    `/api/admin/activities`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListRecentActivitiesQueryOptions = <TData = Awaited<ReturnType<typeof listRecentActivities>>, TError = ErrorType<unknown>>(params?: ListRecentActivitiesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRecentActivities>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRecentActivitiesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRecentActivities>>> = ({ signal }) => listRecentActivities(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRecentActivities>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRecentActivitiesQueryResult = NonNullable<Awaited<ReturnType<typeof listRecentActivities>>>
+export type ListRecentActivitiesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the most recent activities across all leads (admin)
+ */
+
+export function useListRecentActivities<TData = Awaited<ReturnType<typeof listRecentActivities>>, TError = ErrorType<unknown>>(
+ params?: ListRecentActivitiesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRecentActivities>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRecentActivitiesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getReplyToLeadUrl = (id: number,) => {
 

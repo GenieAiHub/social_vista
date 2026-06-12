@@ -12,6 +12,7 @@ import {
   ListLeadActivitiesParams,
   CreateLeadActivityParams,
   CreateLeadActivityBody,
+  ListRecentActivitiesQueryParams,
 } from "@workspace/api-zod";
 import { requireAuth, type AuthedRequest, type AuthUser } from "../lib/auth.js";
 import {
@@ -227,6 +228,31 @@ router.get("/admin/leads/:id/activities", requireAuth, async (req, res) => {
     res.json(rows.map(serializeActivity));
   } catch (err) {
     req.log.error({ err }, "Failed to list lead activities");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/admin/activities", requireAuth, async (req, res) => {
+  try {
+    const { limit } = ListRecentActivitiesQueryParams.parse(req.query);
+    const rows = await db
+      .select({
+        id: leadActivitiesTable.id,
+        leadId: leadActivitiesTable.leadId,
+        leadName: leadsTable.name,
+        type: leadActivitiesTable.type,
+        note: leadActivitiesTable.note,
+        authorId: leadActivitiesTable.authorId,
+        authorName: leadActivitiesTable.authorName,
+        createdAt: leadActivitiesTable.createdAt,
+      })
+      .from(leadActivitiesTable)
+      .innerJoin(leadsTable, eq(leadActivitiesTable.leadId, leadsTable.id))
+      .orderBy(desc(leadActivitiesTable.createdAt))
+      .limit(limit ?? 15);
+    res.json(rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })));
+  } catch (err) {
+    req.log.error({ err }, "Failed to list recent activities");
     res.status(500).json({ error: "Internal server error" });
   }
 });
