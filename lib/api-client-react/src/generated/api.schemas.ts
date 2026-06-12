@@ -160,6 +160,27 @@ export interface LeadInput {
   source?: string;
 }
 
+export interface LeadImportInput {
+  /**
+     * @minItems 1
+     * @maxItems 1000
+     */
+  leads: LeadInput[];
+  /** Source label applied to every imported lead. Defaults to "import". */
+  source?: string;
+}
+
+export interface LeadImportError {
+  row: number;
+  error: string;
+}
+
+export interface LeadImportResult {
+  imported: number;
+  failed: number;
+  errors: LeadImportError[];
+}
+
 export type LeadUpdateStatus = typeof LeadUpdateStatus[keyof typeof LeadUpdateStatus];
 
 

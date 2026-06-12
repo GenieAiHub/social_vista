@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearch } from "wouter";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
-import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle, History, ArrowRightLeft, UserCheck, StickyNote, Activity as ActivityIcon, ChevronDown, ChevronUp, PlusCircle } from "lucide-react";
+import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle, History, ArrowRightLeft, UserCheck, StickyNote, Activity as ActivityIcon, ChevronDown, ChevronUp, PlusCircle, Plus, Upload, FileSpreadsheet, X } from "lucide-react";
 import {
   useListLeads,
+  useCreateLead,
+  useImportLeads,
   useUpdateLead,
   useDeleteLead,
   useReplyToLead,
@@ -460,6 +462,295 @@ function LeadCard({
   );
 }
 
+const EMPTY_LEAD_FORM = {
+  name: "",
+  email: "",
+  phone: "",
+  serviceInterest: "",
+  preferredTime: "",
+  message: "",
+};
+
+function NewLeadDialog({ onCreated }: { onCreated: () => void }) {
+  const createLead = useCreateLead();
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ ...EMPTY_LEAD_FORM });
+
+  function set(key: keyof typeof form, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function handleCreate() {
+    if (!form.name.trim()) {
+      toast({ title: "Name is required.", variant: "destructive" });
+      return;
+    }
+    createLead.mutate(
+      {
+        data: {
+          name: form.name.trim(),
+          email: form.email.trim() || undefined,
+          phone: form.phone.trim() || undefined,
+          serviceInterest: form.serviceInterest.trim() || undefined,
+          preferredTime: form.preferredTime.trim() || undefined,
+          message: form.message.trim() || undefined,
+          source: "manual",
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({ title: "Lead created." });
+          setForm({ ...EMPTY_LEAD_FORM });
+          setOpen(false);
+          onCreated();
+        },
+        onError: () => toast({ title: "Could not create the lead.", variant: "destructive" }),
+      },
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="h-9 gap-1.5" data-testid="button-new-lead">
+          <Plus className="w-4 h-4" /> New lead
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add a new lead</DialogTitle>
+          <DialogDescription>Manually create a lead. Only a name is required.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor="new-lead-name">Name *</Label>
+            <Input id="new-lead-name" value={form.name} onChange={(e) => set("name", e.target.value)} className="mt-1" data-testid="input-new-lead-name" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="new-lead-email">Email</Label>
+              <Input id="new-lead-email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} className="mt-1" data-testid="input-new-lead-email" />
+            </div>
+            <div>
+              <Label htmlFor="new-lead-phone">Phone</Label>
+              <Input id="new-lead-phone" value={form.phone} onChange={(e) => set("phone", e.target.value)} className="mt-1" data-testid="input-new-lead-phone" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="new-lead-service">Service interest</Label>
+              <Input id="new-lead-service" value={form.serviceInterest} onChange={(e) => set("serviceInterest", e.target.value)} className="mt-1" data-testid="input-new-lead-service" />
+            </div>
+            <div>
+              <Label htmlFor="new-lead-time">Preferred time</Label>
+              <Input id="new-lead-time" value={form.preferredTime} onChange={(e) => set("preferredTime", e.target.value)} className="mt-1" data-testid="input-new-lead-time" />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="new-lead-message">Message</Label>
+            <Textarea id="new-lead-message" value={form.message} onChange={(e) => set("message", e.target.value)} className="mt-1 min-h-[80px]" data-testid="textarea-new-lead-message" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleCreate} disabled={createLead.isPending} data-testid="button-save-new-lead">
+            {createLead.isPending ? "Creating…" : "Create lead"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type ImportRow = {
+  name: string;
+  email: string;
+  phone: string;
+  serviceInterest: string;
+  preferredTime: string;
+  message: string;
+};
+
+function normalizeHeader(key: string): string {
+  return key.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function mapImportRow(raw: Record<string, unknown>): ImportRow {
+  const norm: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    norm[normalizeHeader(k)] = v == null ? "" : String(v).trim();
+  }
+  const pick = (...keys: string[]): string => {
+    for (const k of keys) if (norm[k]) return norm[k];
+    return "";
+  };
+  return {
+    name: pick("name", "fullname", "contactname", "leadname", "client"),
+    email: pick("email", "emailaddress", "mail", "e-mail"),
+    phone: pick("phone", "phonenumber", "mobile", "contactnumber", "contact", "tel"),
+    serviceInterest: pick("serviceinterest", "service", "interest", "serviceinterested"),
+    preferredTime: pick("preferredtime", "preferred", "availability", "time"),
+    message: pick("message", "notes", "note", "comment", "comments", "details"),
+  };
+}
+
+function ImportLeadsDialog({ onImported }: { onImported: () => void }) {
+  const importLeads = useImportLeads();
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState<ImportRow[]>([]);
+  const [fileName, setFileName] = useState("");
+  const [skipped, setSkipped] = useState(0);
+  const [parsing, setParsing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function reset() {
+    setRows([]);
+    setFileName("");
+    setSkipped(0);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setParsing(true);
+    try {
+      const XLSX = await import("xlsx");
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+      const mapped = json.map(mapImportRow);
+      const valid = mapped.filter((r) => r.name);
+      setRows(valid);
+      setSkipped(mapped.length - valid.length);
+      setFileName(file.name);
+    } catch {
+      toast({ title: "Could not read that file. Use a valid .xlsx, .xls, or .csv file.", variant: "destructive" });
+      reset();
+    } finally {
+      setParsing(false);
+    }
+  }
+
+  function handleImport() {
+    if (rows.length === 0) {
+      toast({ title: "No valid rows to import.", variant: "destructive" });
+      return;
+    }
+    importLeads.mutate(
+      {
+        data: {
+          source: "import",
+          leads: rows.map((r) => ({
+            name: r.name,
+            email: r.email || undefined,
+            phone: r.phone || undefined,
+            serviceInterest: r.serviceInterest || undefined,
+            preferredTime: r.preferredTime || undefined,
+            message: r.message || undefined,
+          })),
+        },
+      },
+      {
+        onSuccess: (res) => {
+          toast({
+            title: `Imported ${res.imported} lead${res.imported === 1 ? "" : "s"}${res.failed ? `, ${res.failed} failed` : ""}.`,
+          });
+          reset();
+          setOpen(false);
+          onImported();
+        },
+        onError: () => toast({ title: "Import failed.", variant: "destructive" }),
+      },
+    );
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) reset();
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="h-9 gap-1.5" data-testid="button-import-leads">
+          <Upload className="w-4 h-4" /> Import
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Import leads from Excel</DialogTitle>
+          <DialogDescription>
+            Upload a .xlsx, .xls, or .csv file. The first row should be column headers.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground mb-1">Recognized columns</p>
+            <p>Name (required), Email, Phone, Service Interest, Preferred Time, Message. Column names are matched flexibly and extra columns are ignored.</p>
+          </div>
+          <div>
+            <Input
+              ref={inputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFile}
+              className="cursor-pointer"
+              data-testid="input-import-file"
+            />
+          </div>
+          {parsing && <p className="text-sm text-muted-foreground">Reading file…</p>}
+          {fileName && !parsing && (
+            <div className="rounded-lg border border-border p-3" data-testid="import-preview">
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 text-sm text-foreground min-w-0">
+                  <FileSpreadsheet className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="truncate">{fileName}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="text-muted-foreground hover:text-destructive flex-shrink-0"
+                  data-testid="button-clear-import"
+                  aria-label="Clear file"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-xs mt-2">
+                <span className="text-foreground font-medium" data-testid="text-import-valid">{rows.length}</span> lead{rows.length === 1 ? "" : "s"} ready to import
+                {skipped > 0 && (
+                  <span className="text-amber-500"> · {skipped} row{skipped === 1 ? "" : "s"} skipped (missing name)</span>
+                )}
+              </p>
+              {rows.length > 0 && (
+                <ul className="mt-2 max-h-32 overflow-auto text-xs text-muted-foreground space-y-0.5">
+                  {rows.slice(0, 5).map((r, i) => (
+                    <li key={i} className="truncate">• {r.name}{r.email ? ` — ${r.email}` : ""}</li>
+                  ))}
+                  {rows.length > 5 && <li className="text-foreground/60">…and {rows.length - 5} more</li>}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button
+            onClick={handleImport}
+            disabled={importLeads.isPending || rows.length === 0}
+            data-testid="button-confirm-import"
+          >
+            {importLeads.isPending ? "Importing…" : `Import ${rows.length || ""} lead${rows.length === 1 ? "" : "s"}`.trim()}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function LeadsAdmin() {
   const { data: leads, isLoading } = useListLeads();
   const { data: staff } = useListStaff();
@@ -518,6 +809,8 @@ export default function LeadsAdmin() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <NewLeadDialog onCreated={invalidate} />
+            <ImportLeadsDialog onImported={invalidate} />
             <Button
               size="sm"
               variant={followUpOnly ? "default" : "outline"}
@@ -549,6 +842,7 @@ export default function LeadsAdmin() {
                 <SelectItem value="chat">Chat</SelectItem>
                 <SelectItem value="contact">Contact form</SelectItem>
                 <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="import">Import</SelectItem>
               </SelectContent>
             </Select>
           </div>

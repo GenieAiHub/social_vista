@@ -13,6 +13,7 @@ import {
   CreateLeadActivityParams,
   CreateLeadActivityBody,
   ListRecentActivitiesQueryParams,
+  ImportLeadsBody,
 } from "@workspace/api-zod";
 import { requireAuth, type AuthedRequest, type AuthUser } from "../lib/auth.js";
 import {
@@ -52,6 +53,8 @@ export function createdNoteForSource(source: string): string {
       return "Captured from contact form";
     case "manual":
       return "Created manually by staff";
+    case "import":
+      return "Imported from spreadsheet";
     default:
       return `Captured from ${source}`;
   }
@@ -125,6 +128,51 @@ router.post("/admin/leads", requireAuth, async (req, res) => {
     res.status(201).json(serializeLead(lead));
   } catch (err) {
     req.log.error({ err }, "Failed to create lead");
+    res.status(400).json({ error: "Invalid input" });
+  }
+});
+
+router.post("/admin/leads/import", requireAuth, async (req, res) => {
+  try {
+    const author = (req as AuthedRequest).staff;
+    const body = ImportLeadsBody.parse(req.body);
+    const source = body.source ?? "import";
+    const errors: { row: number; error: string }[] = [];
+    let imported = 0;
+    for (let i = 0; i < body.leads.length; i++) {
+      const row = body.leads[i];
+      try {
+        const [lead] = await db
+          .insert(leadsTable)
+          .values({
+            name: row.name,
+            email: row.email ?? null,
+            phone: row.phone ?? null,
+            serviceInterest: row.serviceInterest ?? null,
+            message: row.message ?? null,
+            preferredTime: row.preferredTime ?? null,
+            source,
+          })
+          .returning();
+        imported++;
+        try {
+          await logActivity({
+            leadId: lead.id,
+            type: "created",
+            note: createdNoteForSource(source),
+            author,
+          });
+        } catch (err) {
+          req.log.error({ err }, "Failed to record lead activity");
+        }
+      } catch (err) {
+        req.log.error({ err }, "Failed to import lead row");
+        errors.push({ row: i + 1, error: "Could not import this row" });
+      }
+    }
+    res.json({ imported, failed: errors.length, errors });
+  } catch (err) {
+    req.log.error({ err }, "Failed to import leads");
     res.status(400).json({ error: "Invalid input" });
   }
 });

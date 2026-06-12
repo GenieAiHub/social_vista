@@ -310,6 +310,36 @@ export const CreateLeadBody = zod.object({
 
 
 /**
+ * @summary Bulk-import leads from a spreadsheet (admin)
+ */
+export const importLeadsBodyLeadsMax = 1000;
+
+
+
+export const ImportLeadsBody = zod.object({
+  "leads": zod.array(zod.object({
+  "name": zod.string(),
+  "email": zod.string().optional(),
+  "phone": zod.string().optional(),
+  "serviceInterest": zod.string().optional(),
+  "message": zod.string().optional(),
+  "preferredTime": zod.string().optional(),
+  "source": zod.string().optional()
+})).min(1).max(importLeadsBodyLeadsMax),
+  "source": zod.string().optional().describe('Source label applied to every imported lead. Defaults to \"import\".')
+})
+
+export const ImportLeadsResponse = zod.object({
+  "imported": zod.number(),
+  "failed": zod.number(),
+  "errors": zod.array(zod.object({
+  "row": zod.number(),
+  "error": zod.string()
+}))
+})
+
+
+/**
  * @summary Update a lead (admin)
  */
 export const UpdateLeadParams = zod.object({
