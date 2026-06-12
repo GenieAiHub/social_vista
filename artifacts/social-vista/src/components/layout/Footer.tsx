@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Twitter, Linkedin, Instagram, Facebook } from "lucide-react";
 import { slugify } from "@/lib/services-content";
-import Logo from "@/components/Logo";
+import logoUrl from "@assets/image_e709c6e4_1781263209469.png";
 
 const footerServices = [
   "Social Media Management",
@@ -19,9 +19,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <Logo className="w-9 h-9 rounded-xl glow-primary" />
-              <span className="font-bold text-xl text-gradient font-serif">Social Vista</span>
+            <div className="mb-4">
+              <img src={logoUrl} alt="Social Vista" className="h-10 w-auto" />
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
               Your full-service digital growth partner. From social media mastery to SaaS development, Web3, and AI-powered automation.

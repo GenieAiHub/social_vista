@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
 import { Lock } from "lucide-react";
-import Logo from "@/components/Logo";
+import logoUrl from "@assets/image_e709c6e4_1781263209469.png";
 import { useAdminLogin } from "@workspace/api-client-react";
 import { setAuth } from "@/lib/admin-auth";
 import { Button } from "@/components/ui/button";
@@ -55,9 +55,8 @@ export default function AdminLogin() {
       <div className="relative z-10 w-full max-w-sm px-4">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <Logo className="w-14 h-14 rounded-2xl glow-primary mb-4" />
-          <h1 className="text-2xl font-bold font-serif text-gradient">Social Vista</h1>
-          <p className="text-muted-foreground text-sm mt-1">Admin Portal</p>
+          <img src={logoUrl} alt="Social Vista" className="h-16 w-auto mb-3" />
+          <p className="text-muted-foreground text-sm">Admin Portal</p>
         </div>
 
         <div className="bg-card rounded-2xl p-8 border border-border shadow-xl">

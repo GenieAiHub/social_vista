@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, X, ChevronDown, ArrowRight, Share2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Logo from "@/components/Logo";
+import logoUrl from "@assets/image_e709c6e4_1781263209469.png";
 import { useListServices } from "@workspace/api-client-react";
 import { iconMap, slugify } from "@/lib/services-content";
 
@@ -51,9 +51,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" data-testid="link-logo">
-            <span className="flex items-center gap-2 cursor-pointer">
-              <Logo className="w-9 h-9 rounded-xl glow-primary" />
-              <span className="font-bold text-xl tracking-tight text-gradient font-serif">Social Vista</span>
+            <span className="flex items-center cursor-pointer">
+              <img src={logoUrl} alt="Social Vista" className="h-9 w-auto" />
             </span>
           </Link>
 

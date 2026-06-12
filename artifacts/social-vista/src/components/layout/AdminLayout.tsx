@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Zap, Menu, X, Users, UserCog, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Menu, X, Users, UserCog, ClipboardList } from "lucide-react";
+import logoUrl from "@assets/image_e709c6e4_1781263209469.png";
 import { useState } from "react";
 import { clearAuth, getStoredUser } from "@/lib/admin-auth";
 
@@ -35,11 +36,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         } lg:translate-x-0`}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2 px-6 h-16 border-b border-sidebar-border">
-          <span className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white" />
-          </span>
-          <span className="font-bold text-lg text-gradient font-serif">Social Vista</span>
+        <div className="flex items-center px-6 h-16 border-b border-sidebar-border">
+          <img src={logoUrl} alt="Social Vista" className="h-8 w-auto" />
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
