@@ -450,6 +450,98 @@ export const ReplyToLeadResponse = zod.object({
 
 
 /**
+ * @summary List tasks (admin)
+ */
+export const ListTasksQueryParams = zod.object({
+  "status": zod.coerce.string().optional(),
+  "assignedTo": zod.coerce.number().optional()
+})
+
+export const ListTasksResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "status": zod.string(),
+  "priority": zod.string(),
+  "assignedTo": zod.number().nullish(),
+  "assigneeName": zod.string().nullish(),
+  "createdBy": zod.number().nullish(),
+  "creatorName": zod.string().nullish(),
+  "dueDate": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTasksResponse = zod.array(ListTasksResponseItem)
+
+
+/**
+ * @summary Create a task (admin)
+ */
+export const createTaskBodyTitleMax = 200;
+
+export const createTaskBodyDescriptionMax = 5000;
+
+
+
+export const CreateTaskBody = zod.object({
+  "title": zod.string().min(1).max(createTaskBodyTitleMax),
+  "description": zod.string().max(createTaskBodyDescriptionMax).optional(),
+  "status": zod.enum(['todo', 'in_progress', 'done']).optional(),
+  "priority": zod.enum(['low', 'medium', 'high']).optional(),
+  "assignedTo": zod.number().nullish(),
+  "dueDate": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update a task (admin)
+ */
+export const UpdateTaskParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateTaskBodyTitleMax = 200;
+
+
+
+export const UpdateTaskBody = zod.object({
+  "title": zod.string().min(1).max(updateTaskBodyTitleMax).optional(),
+  "description": zod.string().nullish(),
+  "status": zod.enum(['todo', 'in_progress', 'done']).optional(),
+  "priority": zod.enum(['low', 'medium', 'high']).optional(),
+  "assignedTo": zod.number().nullish(),
+  "dueDate": zod.string().nullish()
+})
+
+export const UpdateTaskResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "status": zod.string(),
+  "priority": zod.string(),
+  "assignedTo": zod.number().nullish(),
+  "assigneeName": zod.string().nullish(),
+  "createdBy": zod.number().nullish(),
+  "creatorName": zod.string().nullish(),
+  "dueDate": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a task (admin)
+ */
+export const DeleteTaskParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteTaskResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary List staff members (admin)
  */
 export const ListStaffResponseItem = zod.object({

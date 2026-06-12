@@ -5,3 +5,4 @@ export * from "./testimonials";
 export * from "./staff";
 export * from "./leads";
 export * from "./leadActivities";
+export * from "./tasks";

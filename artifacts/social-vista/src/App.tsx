@@ -19,6 +19,7 @@ import AdminServices from "@/pages/admin/ServicesAdmin";
 import AdminContent from "@/pages/admin/ContentAdmin";
 import AdminContacts from "@/pages/admin/ContactsAdmin";
 import AdminLeads from "@/pages/admin/LeadsAdmin";
+import AdminTasks from "@/pages/admin/TasksAdmin";
 import AdminStaff from "@/pages/admin/StaffAdmin";
 import AdminTheme from "@/pages/admin/ThemeAdmin";
 import AIChatWidget from "@/components/AIChatWidget";
@@ -91,6 +92,9 @@ function Router() {
         </Route>
         <Route path="/admin/leads">
           <AdminGuard><AdminLeads /></AdminGuard>
+        </Route>
+        <Route path="/admin/tasks">
+          <AdminGuard><AdminTasks /></AdminGuard>
         </Route>
         <Route path="/admin/staff">
           <OwnerGuard><AdminStaff /></OwnerGuard>

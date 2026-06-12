@@ -1,11 +1,12 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Zap, Menu, X, Users, UserCog } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Zap, Menu, X, Users, UserCog, ClipboardList } from "lucide-react";
 import { useState } from "react";
 import { clearAuth, getStoredUser } from "@/lib/admin-auth";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, ownerOnly: false },
   { label: "Leads", href: "/admin/leads", icon: Users, ownerOnly: false },
+  { label: "Tasks", href: "/admin/tasks", icon: ClipboardList, ownerOnly: false },
   { label: "Services", href: "/admin/services", icon: Settings, ownerOnly: false },
   { label: "Content", href: "/admin/content", icon: FileText, ownerOnly: false },
   { label: "Contacts", href: "/admin/contacts", icon: MessageSquare, ownerOnly: false },

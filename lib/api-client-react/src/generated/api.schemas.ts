@@ -279,6 +279,95 @@ export interface Testimonial {
   avatarUrl?: string | null;
 }
 
+export interface Task {
+  id: number;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  status: string;
+  priority: string;
+  /** @nullable */
+  assignedTo?: number | null;
+  /** @nullable */
+  assigneeName?: string | null;
+  /** @nullable */
+  createdBy?: number | null;
+  /** @nullable */
+  creatorName?: string | null;
+  /** @nullable */
+  dueDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TaskInputStatus = typeof TaskInputStatus[keyof typeof TaskInputStatus];
+
+
+export const TaskInputStatus = {
+  todo: 'todo',
+  in_progress: 'in_progress',
+  done: 'done',
+} as const;
+
+export type TaskInputPriority = typeof TaskInputPriority[keyof typeof TaskInputPriority];
+
+
+export const TaskInputPriority = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface TaskInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  /** @maxLength 5000 */
+  description?: string;
+  status?: TaskInputStatus;
+  priority?: TaskInputPriority;
+  /** @nullable */
+  assignedTo?: number | null;
+  /** @nullable */
+  dueDate?: string | null;
+}
+
+export type TaskUpdateStatus = typeof TaskUpdateStatus[keyof typeof TaskUpdateStatus];
+
+
+export const TaskUpdateStatus = {
+  todo: 'todo',
+  in_progress: 'in_progress',
+  done: 'done',
+} as const;
+
+export type TaskUpdatePriority = typeof TaskUpdatePriority[keyof typeof TaskUpdatePriority];
+
+
+export const TaskUpdatePriority = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface TaskUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title?: string;
+  /** @nullable */
+  description?: string | null;
+  status?: TaskUpdateStatus;
+  priority?: TaskUpdatePriority;
+  /** @nullable */
+  assignedTo?: number | null;
+  /** @nullable */
+  dueDate?: string | null;
+}
+
 export interface DeleteResult {
   success: boolean;
 }
@@ -294,5 +383,10 @@ export type ListRecentActivitiesParams = {
  * @maximum 100
  */
 limit?: number;
+};
+
+export type ListTasksParams = {
+status?: string;
+assignedTo?: number;
 };
 

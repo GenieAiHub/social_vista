@@ -7,6 +7,7 @@ import chatRouter from "./chat";
 import testimonialsRouter from "./testimonials";
 import staffRouter from "./staff";
 import leadsRouter from "./leads";
+import tasksRouter from "./tasks";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(chatRouter);
 router.use(testimonialsRouter);
 router.use(staffRouter);
 router.use(leadsRouter);
+router.use(tasksRouter);
 
 export default router;
