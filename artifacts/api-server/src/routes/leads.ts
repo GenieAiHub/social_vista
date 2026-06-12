@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, leadsTable, leadActivitiesTable } from "@workspace/db";
+import { db, leadsTable, leadActivitiesTable, staffTable } from "@workspace/db";
 import { eq, desc, and, type SQL } from "drizzle-orm";
 import {
   CreateLeadBody,
@@ -159,10 +159,15 @@ router.patch("/admin/leads/:id", requireAuth, async (req, res) => {
       events.push({ type: "status_change", note: `Status changed from ${existing.status} to ${body.status}` });
     }
     if (body.assignedTo !== undefined && body.assignedTo !== existing.assignedTo) {
-      events.push({
-        type: "assignment",
-        note: body.assignedTo == null ? "Lead unassigned" : `Lead assigned to staff #${body.assignedTo}`,
-      });
+      let assignmentNote = "Lead unassigned";
+      if (body.assignedTo != null) {
+        const [assignee] = await db
+          .select({ name: staffTable.name })
+          .from(staffTable)
+          .where(eq(staffTable.id, body.assignedTo));
+        assignmentNote = `Lead assigned to ${assignee?.name ?? `staff #${body.assignedTo}`}`;
+      }
+      events.push({ type: "assignment", note: assignmentNote });
     }
     if (body.adminNotes !== undefined && (body.adminNotes ?? "") !== (existing.adminNotes ?? "")) {
       events.push({ type: "note", note: body.adminNotes || "Internal note cleared" });
