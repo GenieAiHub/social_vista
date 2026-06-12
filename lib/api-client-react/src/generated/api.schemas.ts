@@ -192,6 +192,28 @@ export interface LeadReplyInput {
   message: string;
 }
 
+export interface LeadActivity {
+  id: number;
+  leadId: number;
+  type: string;
+  /** @nullable */
+  note?: string | null;
+  /** @nullable */
+  authorId?: number | null;
+  /** @nullable */
+  authorName?: string | null;
+  createdAt: string;
+}
+
+export interface LeadActivityInput {
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  note: string;
+  type?: string;
+}
+
 export interface ContentBlock {
   id: number;
   key: string;

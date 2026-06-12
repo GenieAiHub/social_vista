@@ -20,6 +20,8 @@ export * from './contentBlockInput';
 export * from './deleteResult';
 export * from './healthStatus';
 export * from './lead';
+export * from './leadActivity';
+export * from './leadActivityInput';
 export * from './leadInput';
 export * from './leadReplyInput';
 export * from './leadUpdate';

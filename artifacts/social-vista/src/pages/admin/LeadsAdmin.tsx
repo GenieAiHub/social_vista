@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
-import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle, History, ArrowRightLeft, UserCheck, StickyNote, Activity as ActivityIcon, ChevronDown, ChevronUp } from "lucide-react";
 import {
   useListLeads,
   useUpdateLead,
   useDeleteLead,
   useReplyToLead,
   useListStaff,
+  useListLeadActivities,
+  useCreateLeadActivity,
   getListLeadsQueryKey,
+  getListLeadActivitiesQueryKey,
   getGetAdminStatsQueryKey,
   type Lead,
+  type LeadActivity,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -132,6 +136,119 @@ function ReplyDialog({ lead, onReplied }: { lead: Lead; onReplied: () => void })
   );
 }
 
+const activityMeta: Record<string, { icon: typeof History; label: string; color: string }> = {
+  status_change: { icon: ArrowRightLeft, label: "Status change", color: "text-primary" },
+  assignment: { icon: UserCheck, label: "Assignment", color: "text-accent" },
+  note: { icon: StickyNote, label: "Note", color: "text-amber-400" },
+  contacted: { icon: CheckCircle2, label: "Contacted", color: "text-green-400" },
+  email: { icon: Send, label: "Email reply", color: "text-blue-400" },
+  log: { icon: ActivityIcon, label: "Log", color: "text-muted-foreground" },
+};
+
+function TimelineEntry({ activity }: { activity: LeadActivity }) {
+  const meta = activityMeta[activity.type] ?? activityMeta.log;
+  const Icon = meta.icon;
+  return (
+    <li className="flex gap-3" data-testid={`activity-${activity.id}`}>
+      <div className="flex flex-col items-center">
+        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+          <Icon className={`w-3 h-3 ${meta.color}`} />
+        </div>
+        <div className="w-px flex-1 bg-border mt-1" />
+      </div>
+      <div className="pb-3 min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-medium text-foreground">{meta.label}</span>
+          <span
+            className="text-[11px] text-muted-foreground"
+            title={format(new Date(activity.createdAt), "MMM d, yyyy 'at' h:mm a")}
+          >
+            {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+          </span>
+          {activity.authorName && (
+            <span className="text-[11px] text-muted-foreground">· {activity.authorName}</span>
+          )}
+        </div>
+        {activity.note && (
+          <p className="text-xs text-foreground/70 mt-0.5 leading-relaxed break-words">{activity.note}</p>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function LeadTimeline({ leadId, onChanged }: { leadId: number; onChanged: () => void }) {
+  const { data: activities, isLoading } = useListLeadActivities(leadId);
+  const createActivity = useCreateLeadActivity();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [note, setNote] = useState("");
+
+  function refresh() {
+    queryClient.invalidateQueries({ queryKey: getListLeadActivitiesQueryKey(leadId) });
+    onChanged();
+  }
+
+  function handleAdd() {
+    if (!note.trim()) {
+      toast({ title: "Enter a note to log.", variant: "destructive" });
+      return;
+    }
+    createActivity.mutate(
+      { id: leadId, data: { note: note.trim(), type: "log" } },
+      {
+        onSuccess: () => {
+          setNote("");
+          refresh();
+        },
+        onError: () => toast({ title: "Could not save the log entry.", variant: "destructive" }),
+      },
+    );
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-border">
+      <div className="flex items-center gap-2 mb-3">
+        <History className="w-3.5 h-3.5 text-muted-foreground" />
+        <span className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Activity timeline</span>
+      </div>
+      <div className="flex items-end gap-2 mb-3">
+        <Textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Log a call, meeting, or other touchpoint…"
+          className="min-h-[40px] text-sm"
+          data-testid={`textarea-activity-note-${leadId}`}
+        />
+        <Button
+          size="sm"
+          className="h-9 text-xs flex-shrink-0"
+          onClick={handleAdd}
+          disabled={createActivity.isPending}
+          data-testid={`button-add-activity-${leadId}`}
+        >
+          Log
+        </Button>
+      </div>
+      {isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="h-8 bg-muted/50 rounded animate-pulse" />
+          ))}
+        </div>
+      ) : !activities || activities.length === 0 ? (
+        <p className="text-xs text-muted-foreground">No activity recorded yet.</p>
+      ) : (
+        <ul className="[&>li:last-child>div:first-child>div:last-child]:hidden" data-testid={`timeline-${leadId}`}>
+          {activities.map((a) => (
+            <TimelineEntry key={a.id} activity={a} />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function LeadCard({
   lead,
   staff,
@@ -144,6 +261,7 @@ function LeadCard({
   const updateLead = useUpdateLead();
   const deleteLead = useDeleteLead();
   const [notes, setNotes] = useState(lead.adminNotes ?? "");
+  const [showTimeline, setShowTimeline] = useState(false);
 
   function patch(data: { status?: Status; assignedTo?: number | null; adminNotes?: string; markContacted?: boolean }) {
     updateLead.mutate({ id: lead.id, data }, { onSuccess: onChanged });
@@ -285,7 +403,18 @@ function LeadCard({
         )}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-border flex justify-end">
+      <div className="mt-3 pt-3 border-t border-border flex justify-between items-center gap-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 text-xs gap-1.5 text-muted-foreground"
+          onClick={() => setShowTimeline((v) => !v)}
+          data-testid={`button-toggle-timeline-${lead.id}`}
+        >
+          <History className="w-3.5 h-3.5" />
+          {showTimeline ? "Hide timeline" : "View timeline"}
+          {showTimeline ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </Button>
         <Button
           size="sm"
           variant="outline"
@@ -297,6 +426,8 @@ function LeadCard({
           <CheckCircle2 className="w-3.5 h-3.5" /> Mark contacted now
         </Button>
       </div>
+
+      {showTimeline && <LeadTimeline leadId={lead.id} onChanged={onChanged} />}
     </div>
   );
 }

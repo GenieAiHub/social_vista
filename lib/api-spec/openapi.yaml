@@ -372,6 +372,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/DeleteResult"
 
+  /admin/leads/{id}/activities:
+    get:
+      operationId: listLeadActivities
+      tags: [admin]
+      summary: List the activity timeline for a lead (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Chronological activity log for the lead
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeadActivity"
+    post:
+      operationId: createLeadActivity
+      tags: [admin]
+      summary: Add a manual activity log entry for a lead (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadActivityInput"
+      responses:
+        "201":
+          description: Activity created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadActivity"
+
   /admin/leads/{id}/reply:
     post:
       operationId: replyToLead
@@ -766,6 +810,36 @@ components:
           type: string
           minLength: 1
           maxLength: 5000
+
+    LeadActivity:
+      type: object
+      required: [id, leadId, type, createdAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        type:
+          type: string
+        note:
+          type: ["string", "null"]
+        authorId:
+          type: ["integer", "null"]
+        authorName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    LeadActivityInput:
+      type: object
+      required: [note]
+      properties:
+        note:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        type:
+          type: string
 
     ContentBlock:
       type: object

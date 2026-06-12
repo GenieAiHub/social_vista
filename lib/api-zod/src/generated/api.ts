@@ -354,6 +354,42 @@ export const DeleteLeadResponse = zod.object({
 
 
 /**
+ * @summary List the activity timeline for a lead (admin)
+ */
+export const ListLeadActivitiesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListLeadActivitiesResponseItem = zod.object({
+  "id": zod.number(),
+  "leadId": zod.number(),
+  "type": zod.string(),
+  "note": zod.string().nullish(),
+  "authorId": zod.number().nullish(),
+  "authorName": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListLeadActivitiesResponse = zod.array(ListLeadActivitiesResponseItem)
+
+
+/**
+ * @summary Add a manual activity log entry for a lead (admin)
+ */
+export const CreateLeadActivityParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const createLeadActivityBodyNoteMax = 5000;
+
+
+
+export const CreateLeadActivityBody = zod.object({
+  "note": zod.string().min(1).max(createLeadActivityBodyNoteMax),
+  "type": zod.string().optional()
+})
+
+
+/**
  * @summary Send an email reply to a lead (admin)
  */
 export const ReplyToLeadParams = zod.object({
