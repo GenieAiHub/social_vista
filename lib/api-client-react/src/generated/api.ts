@@ -33,6 +33,7 @@ import type {
   HealthStatus,
   Lead,
   LeadInput,
+  LeadReplyInput,
   LeadUpdate,
   ListLeadsParams,
   Service,
@@ -1535,6 +1536,78 @@ export const useDeleteLead = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteLeadMutationOptions(options));
+    }
+
+export const getReplyToLeadUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/leads/${id}/reply`
+}
+
+/**
+ * @summary Send an email reply to a lead (admin)
+ */
+export const replyToLead = async (id: number,
+    leadReplyInput: LeadReplyInput, options?: RequestInit): Promise<Lead> => {
+
+  return customFetch<Lead>(getReplyToLeadUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      leadReplyInput,)
+  }
+);}
+
+
+
+
+export const getReplyToLeadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replyToLead>>, TError,{id: number;data: BodyType<LeadReplyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof replyToLead>>, TError,{id: number;data: BodyType<LeadReplyInput>}, TContext> => {
+
+const mutationKey = ['replyToLead'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof replyToLead>>, {id: number;data: BodyType<LeadReplyInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  replyToLead(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReplyToLeadMutationResult = NonNullable<Awaited<ReturnType<typeof replyToLead>>>
+    export type ReplyToLeadMutationBody = BodyType<LeadReplyInput>
+    export type ReplyToLeadMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Send an email reply to a lead (admin)
+ */
+export const useReplyToLead = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replyToLead>>, TError,{id: number;data: BodyType<LeadReplyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof replyToLead>>,
+        TError,
+        {id: number;data: BodyType<LeadReplyInput>},
+        TContext
+      > => {
+      return useMutation(getReplyToLeadMutationOptions(options));
     }
 
 export const getListStaffUrl = () => {

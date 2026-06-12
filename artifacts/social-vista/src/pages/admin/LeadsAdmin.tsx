@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Mail, Phone, Calendar, Users, Trash2, MessageSquare, Target } from "lucide-react";
+import { Mail, Phone, Calendar, Users, Trash2, Target, Send } from "lucide-react";
 import {
   useListLeads,
   useUpdateLead,
   useDeleteLead,
+  useReplyToLead,
   useListStaff,
   getListLeadsQueryKey,
   getGetAdminStatsQueryKey,
@@ -14,7 +15,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -22,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 const STATUSES = ["new", "contacted", "booked", "closed"] as const;
 type Status = (typeof STATUSES)[number];
@@ -32,6 +45,92 @@ const statusStyles: Record<string, string> = {
   booked: "bg-green-400/15 text-green-400 border-green-400/30",
   closed: "bg-muted text-muted-foreground border-border",
 };
+
+function ReplyDialog({ lead, onReplied }: { lead: Lead; onReplied: () => void }) {
+  const replyToLead = useReplyToLead();
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [subject, setSubject] = useState(`Re: your inquiry with Social Vista`);
+  const [message, setMessage] = useState("");
+
+  function handleSend() {
+    if (!subject.trim() || !message.trim()) {
+      toast({ title: "Subject and message are required.", variant: "destructive" });
+      return;
+    }
+    replyToLead.mutate(
+      { id: lead.id, data: { subject, message } },
+      {
+        onSuccess: () => {
+          toast({ title: `Reply sent to ${lead.name}.` });
+          setOpen(false);
+          setMessage("");
+          onReplied();
+        },
+        onError: () =>
+          toast({
+            title: "Could not send the reply. Check the email configuration.",
+            variant: "destructive",
+          }),
+      },
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 px-2 text-xs"
+          data-testid={`button-reply-lead-${lead.id}`}
+        >
+          <Send className="w-3.5 h-3.5 mr-1" /> Reply
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reply to {lead.name}</DialogTitle>
+          <DialogDescription>
+            Sends an email to {lead.email} and marks this lead as contacted.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor={`reply-subject-${lead.id}`}>Subject</Label>
+            <Input
+              id={`reply-subject-${lead.id}`}
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="mt-1"
+              data-testid={`input-reply-subject-${lead.id}`}
+            />
+          </div>
+          <div>
+            <Label htmlFor={`reply-message-${lead.id}`}>Message</Label>
+            <Textarea
+              id={`reply-message-${lead.id}`}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder={`Hi ${lead.name}, thanks for reaching out…`}
+              className="mt-1 min-h-[140px]"
+              data-testid={`textarea-reply-message-${lead.id}`}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            onClick={handleSend}
+            disabled={replyToLead.isPending}
+            data-testid={`button-send-reply-${lead.id}`}
+          >
+            {replyToLead.isPending ? "Sending…" : "Send reply"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function LeadCard({
   lead,
@@ -94,16 +193,19 @@ function LeadCard({
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {format(new Date(lead.createdAt), "MMM d, yyyy")}
           </span>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
-            onClick={() => deleteLead.mutate({ id: lead.id }, { onSuccess: onChanged })}
-            disabled={deleteLead.isPending}
-            data-testid={`button-delete-lead-${lead.id}`}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
+          <div className="flex items-center gap-1.5">
+            {lead.email && <ReplyDialog lead={lead} onReplied={onChanged} />}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+              onClick={() => deleteLead.mutate({ id: lead.id }, { onSuccess: onChanged })}
+              disabled={deleteLead.isPending}
+              data-testid={`button-delete-lead-${lead.id}`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
       </div>
 

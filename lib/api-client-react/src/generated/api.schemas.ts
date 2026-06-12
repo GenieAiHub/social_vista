@@ -175,6 +175,19 @@ export interface LeadUpdate {
   adminNotes?: string;
 }
 
+export interface LeadReplyInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  subject: string;
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  message: string;
+}
+
 export interface ContentBlock {
   id: number;
   key: string;

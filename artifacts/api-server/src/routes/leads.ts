@@ -7,8 +7,15 @@ import {
   UpdateLeadParams,
   DeleteLeadParams,
   ListLeadsQueryParams,
+  ReplyToLeadBody,
+  ReplyToLeadParams,
 } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth.js";
+import {
+  sendLeadReply,
+  sendContactedNotice,
+  sendAppointmentConfirmation,
+} from "../lib/email.js";
 import type { Lead } from "@workspace/db";
 
 const router = Router();
@@ -65,6 +72,11 @@ router.patch("/admin/leads/:id", requireAuth, async (req, res) => {
   try {
     const { id } = UpdateLeadParams.parse({ id: Number(req.params.id) });
     const body = UpdateLeadBody.parse(req.body);
+    const [existing] = await db
+      .select()
+      .from(leadsTable)
+      .where(eq(leadsTable.id, id));
+    if (!existing) { res.status(404).json({ error: "Not found" }); return; }
     const updates: Partial<typeof leadsTable.$inferInsert> = {};
     if (body.status !== undefined) updates.status = body.status;
     if (body.assignedTo !== undefined) updates.assignedTo = body.assignedTo;
@@ -75,9 +87,60 @@ router.patch("/admin/leads/:id", requireAuth, async (req, res) => {
       .where(eq(leadsTable.id, id))
       .returning();
     if (!lead) { res.status(404).json({ error: "Not found" }); return; }
+    // Notify the lead by email when their status transitions to a new stage.
+    // Fire-and-forget — email must never block or fail the update.
+    if (lead.email && body.status !== undefined && body.status !== existing.status) {
+      if (body.status === "contacted") {
+        void sendContactedNotice({ to: lead.email, name: lead.name });
+      } else if (body.status === "booked") {
+        void sendAppointmentConfirmation({
+          to: lead.email,
+          name: lead.name,
+          preferredTime: lead.preferredTime,
+        });
+      }
+    }
     res.json(serializeLead(lead));
   } catch (err) {
     req.log.error({ err }, "Failed to update lead");
+    res.status(400).json({ error: "Invalid input" });
+  }
+});
+
+router.post("/admin/leads/:id/reply", requireAuth, async (req, res) => {
+  try {
+    const { id } = ReplyToLeadParams.parse({ id: Number(req.params.id) });
+    const body = ReplyToLeadBody.parse(req.body);
+    const [existing] = await db
+      .select()
+      .from(leadsTable)
+      .where(eq(leadsTable.id, id));
+    if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+    if (!existing.email) {
+      res.status(400).json({ error: "This lead has no email address to reply to" });
+      return;
+    }
+    const sent = await sendLeadReply({
+      to: existing.email,
+      name: existing.name,
+      subject: body.subject,
+      message: body.message,
+    });
+    if (!sent) {
+      res.status(502).json({ error: "Email could not be sent. Check the Resend configuration." });
+      return;
+    }
+    // A successful reply advances a brand-new lead to "contacted", but never
+    // regresses a lead that's already further along (booked/closed/contacted).
+    const nextStatus = existing.status === "new" ? "contacted" : existing.status;
+    const [lead] = await db
+      .update(leadsTable)
+      .set({ status: nextStatus })
+      .where(eq(leadsTable.id, id))
+      .returning();
+    res.json(serializeLead(lead));
+  } catch (err) {
+    req.log.error({ err }, "Failed to send lead reply");
     res.status(400).json({ error: "Invalid input" });
   }
 });

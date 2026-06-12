@@ -7,6 +7,7 @@ import {
   MarkContactReadParams,
 } from "@workspace/api-zod";
 import { requireAuth } from "../lib/auth.js";
+import { sendContactAutoReply, sendNewLeadNotification } from "../lib/email.js";
 
 const router = Router();
 
@@ -34,6 +35,17 @@ router.post("/contact", async (req, res) => {
     } catch (leadErr) {
       req.log.error({ err: leadErr }, "Failed to create lead from contact");
     }
+    // Fire-and-forget emails: acknowledge the visitor and notify the agency.
+    // These must never block or fail the request.
+    void sendContactAutoReply({ to: body.email, name: body.name, service: body.service ?? null });
+    void sendNewLeadNotification({
+      name: body.name,
+      email: body.email,
+      phone: body.phone ?? null,
+      service: body.service ?? null,
+      message: body.message,
+      source: "contact",
+    });
     res.status(201).json({ ...contact, createdAt: contact.createdAt.toISOString() });
   } catch (err) {
     req.log.error({ err }, "Failed to submit contact");

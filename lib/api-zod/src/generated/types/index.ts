@@ -21,6 +21,7 @@ export * from './deleteResult';
 export * from './healthStatus';
 export * from './lead';
 export * from './leadInput';
+export * from './leadReplyInput';
 export * from './leadUpdate';
 export * from './leadUpdateStatus';
 export * from './listLeadsParams';

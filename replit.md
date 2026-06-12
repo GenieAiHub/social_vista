@@ -35,6 +35,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - Auth is JWT (HS256, signed with `SESSION_SECRET`, 7-day TTL). `requireAuth` revalidates the staff row against the DB on every request (existence + `active`) so deactivated/deleted/demoted accounts lose access immediately rather than at token expiry. `requireOwner` reads the DB-backed role.
 - Roles: `owner` (full access incl. staff management) and `staff`. The system protects against removing the last active owner (demote/deactivate/delete).
 - Lead capture has two sources: the AI chat assistant (Groq tool-calling `save_consultation_lead`, two-pass completion) and the public contact form (mirrored to a lead with `source=contact`).
+- Transactional email runs through Resend (`artifacts/api-server/src/lib/email.ts`). The client is lazily created from `RESEND_API_KEY`; when the key is absent every send is a logged no-op so the app still works in dev. Triggers: contact-form auto-reply + optional internal new-lead notification (contact route), status-transition emails on `PATCH /admin/leads/:id` (a "we received your inquiry" note on `new→contacted`, an appointment confirmation on `→booked`), and a custom admin reply via `POST /admin/leads/:id/reply` (composed in the Leads admin). Fire-and-forget automations never block their request; the explicit admin reply is synchronous and returns `502` if delivery fails so staff know it didn't send. Sender defaults to `Social Vista <onboarding@resend.dev>` and is overridable via `RESEND_FROM_EMAIL`; internal notifications only fire when `AGENCY_NOTIFICATION_EMAIL` is set. Dynamic content in email HTML is escaped.
 - First-run bootstrap: `seedOwner()` creates an owner from `ADMIN_USERNAME`/`ADMIN_PASSWORD` (defaults `admin`/`socialvista2024`) only when no staff exist; logs a warning when defaults are used.
 
 ## Product
@@ -50,6 +51,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 - Deploy: prod runs on Railway (auto-deploy from GitHub) against Neon Postgres; dev uses Replit Postgres. Code changes only reach prod after pushing to GitHub.
 - After seeding/importing rows into the Neon prod DB, resync serial sequences (`SELECT setval(...)`) or inserts will collide on duplicate ids.
 - Set `ADMIN_USERNAME`/`ADMIN_PASSWORD` in prod before first deploy, or change the seeded owner password immediately after first login.
+- Email: set `RESEND_API_KEY` (and `RESEND_FROM_EMAIL` on a Resend-verified domain) in prod for live sending. Without a verified domain, Resend only delivers to your own account email via the `onboarding@resend.dev` sender. Without the key, all sends are silently skipped (logged).
 
 ## Pointers
 

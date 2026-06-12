@@ -351,6 +351,41 @@ export const DeleteLeadResponse = zod.object({
 
 
 /**
+ * @summary Send an email reply to a lead (admin)
+ */
+export const ReplyToLeadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const replyToLeadBodySubjectMax = 200;
+
+export const replyToLeadBodyMessageMax = 5000;
+
+
+
+export const ReplyToLeadBody = zod.object({
+  "subject": zod.string().min(1).max(replyToLeadBodySubjectMax),
+  "message": zod.string().min(1).max(replyToLeadBodyMessageMax)
+})
+
+export const ReplyToLeadResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string().nullish(),
+  "phone": zod.string().nullish(),
+  "serviceInterest": zod.string().nullish(),
+  "message": zod.string().nullish(),
+  "preferredTime": zod.string().nullish(),
+  "adminNotes": zod.string().nullish(),
+  "status": zod.string(),
+  "source": zod.string(),
+  "assignedTo": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
  * @summary List staff members (admin)
  */
 export const ListStaffResponseItem = zod.object({
