@@ -52,7 +52,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" data-testid="link-logo">
             <span className="flex items-center cursor-pointer">
-              <img src={logoUrl} alt="Social Vista" className="h-9 w-auto" />
+              <img src={logoUrl} alt="Social Vista" className="h-[3.375rem] w-auto" />
             </span>
           </Link>
 

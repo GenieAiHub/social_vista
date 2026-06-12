@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         {/* Logo */}
         <div className="flex items-center px-6 h-16 border-b border-sidebar-border">
-          <img src={logoUrl} alt="Social Vista" className="h-8 w-auto" />
+          <img src={logoUrl} alt="Social Vista" className="h-12 w-auto" />
         </div>
 
         <nav className="flex-1 p-4 space-y-1">

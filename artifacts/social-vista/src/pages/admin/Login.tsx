@@ -55,7 +55,7 @@ export default function AdminLogin() {
       <div className="relative z-10 w-full max-w-sm px-4">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <img src={logoUrl} alt="Social Vista" className="h-16 w-auto mb-3" />
+          <img src={logoUrl} alt="Social Vista" className="h-24 w-auto mb-3" />
           <p className="text-muted-foreground text-sm">Admin Portal</p>
         </div>
 

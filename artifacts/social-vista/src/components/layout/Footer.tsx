@@ -20,7 +20,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="mb-4">
-              <img src={logoUrl} alt="Social Vista" className="h-10 w-auto" />
+              <img src={logoUrl} alt="Social Vista" className="h-[3.75rem] w-auto" />
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
               Your full-service digital growth partner. From social media mastery to SaaS development, Web3, and AI-powered automation.
