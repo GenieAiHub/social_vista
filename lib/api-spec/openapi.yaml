@@ -714,6 +714,8 @@ components:
           type: string
         assignedTo:
           type: ["integer", "null"]
+        lastContactedAt:
+          type: ["string", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -748,6 +750,9 @@ components:
           type: ["integer", "null"]
         adminNotes:
           type: string
+        markContacted:
+          type: boolean
+          description: When true, records the current time as the lead's last-contacted timestamp.
 
     LeadReplyInput:
       type: object

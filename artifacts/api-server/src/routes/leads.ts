@@ -23,6 +23,7 @@ const router = Router();
 export function serializeLead(l: Lead) {
   return {
     ...l,
+    lastContactedAt: l.lastContactedAt ? l.lastContactedAt.toISOString() : null,
     createdAt: l.createdAt.toISOString(),
     updatedAt: l.updatedAt.toISOString(),
   };
@@ -81,6 +82,9 @@ router.patch("/admin/leads/:id", requireAuth, async (req, res) => {
     if (body.status !== undefined) updates.status = body.status;
     if (body.assignedTo !== undefined) updates.assignedTo = body.assignedTo;
     if (body.adminNotes !== undefined) updates.adminNotes = body.adminNotes;
+    if (body.markContacted || body.status === "contacted") {
+      updates.lastContactedAt = new Date();
+    }
     const [lead] = await db
       .update(leadsTable)
       .set(updates)

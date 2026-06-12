@@ -12,4 +12,6 @@ export interface LeadUpdate {
   /** @nullable */
   assignedTo?: number | null;
   adminNotes?: string;
+  /** When true, records the current time as the lead's last-contacted timestamp. */
+  markContacted?: boolean;
 }

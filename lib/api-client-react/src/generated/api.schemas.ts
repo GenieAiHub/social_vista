@@ -144,6 +144,8 @@ export interface Lead {
   source: string;
   /** @nullable */
   assignedTo?: number | null;
+  /** @nullable */
+  lastContactedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -173,6 +175,8 @@ export interface LeadUpdate {
   /** @nullable */
   assignedTo?: number | null;
   adminNotes?: string;
+  /** When true, records the current time as the lead's last-contacted timestamp. */
+  markContacted?: boolean;
 }
 
 export interface LeadReplyInput {

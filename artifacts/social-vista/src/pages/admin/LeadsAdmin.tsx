@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { format } from "date-fns";
-import { Mail, Phone, Calendar, Users, Trash2, Target, Send } from "lucide-react";
+import { format, formatDistanceToNow, differenceInDays } from "date-fns";
+import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
 import {
   useListLeads,
   useUpdateLead,
@@ -145,9 +145,17 @@ function LeadCard({
   const deleteLead = useDeleteLead();
   const [notes, setNotes] = useState(lead.adminNotes ?? "");
 
-  function patch(data: { status?: Status; assignedTo?: number | null; adminNotes?: string }) {
+  function patch(data: { status?: Status; assignedTo?: number | null; adminNotes?: string; markContacted?: boolean }) {
     updateLead.mutate({ id: lead.id, data }, { onSuccess: onChanged });
   }
+
+  const lastContacted = lead.lastContactedAt ? new Date(lead.lastContactedAt) : null;
+  const isStale =
+    !lastContacted && lead.status !== "booked" && lead.status !== "closed"
+      ? differenceInDays(new Date(), new Date(lead.createdAt)) >= 3
+      : lastContacted && lead.status !== "booked" && lead.status !== "closed"
+        ? differenceInDays(new Date(), lastContacted) >= 7
+        : false;
 
   return (
     <div className="bg-card rounded-xl border border-border p-5" data-testid={`card-lead-${lead.id}`}>
@@ -161,6 +169,11 @@ function LeadCard({
               <span className="font-semibold text-foreground">{lead.name}</span>
               <Badge variant="outline" className={`text-[10px] capitalize ${statusStyles[lead.status] ?? ""}`}>{lead.status}</Badge>
               <Badge variant="secondary" className="text-[10px] capitalize">{lead.source}</Badge>
+              {isStale && (
+                <Badge variant="outline" className="text-[10px] bg-destructive/15 text-destructive border-destructive/30 gap-1" data-testid={`badge-lead-stale-${lead.id}`}>
+                  <AlertTriangle className="w-2.5 h-2.5" /> Needs follow-up
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-4 mt-1.5 flex-wrap">
               {lead.email && (
@@ -192,6 +205,14 @@ function LeadCard({
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {format(new Date(lead.createdAt), "MMM d, yyyy")}
+          </span>
+          <span
+            className={`flex items-center gap-1 text-xs whitespace-nowrap ${isStale ? "text-destructive" : "text-muted-foreground"}`}
+            title={lastContacted ? format(lastContacted, "MMM d, yyyy 'at' h:mm a") : undefined}
+            data-testid={`text-lead-last-contacted-${lead.id}`}
+          >
+            <Clock className="w-3 h-3" />
+            {lastContacted ? `Contacted ${formatDistanceToNow(lastContacted, { addSuffix: true })}` : "Never contacted"}
           </span>
           <div className="flex items-center gap-1.5">
             {lead.email && <ReplyDialog lead={lead} onReplied={onChanged} />}
@@ -262,6 +283,19 @@ function LeadCard({
             Save note
           </Button>
         )}
+      </div>
+
+      <div className="mt-3 pt-3 border-t border-border flex justify-end">
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs gap-1.5"
+          onClick={() => patch({ markContacted: true })}
+          disabled={updateLead.isPending}
+          data-testid={`button-mark-contacted-${lead.id}`}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" /> Mark contacted now
+        </Button>
       </div>
     </div>
   );

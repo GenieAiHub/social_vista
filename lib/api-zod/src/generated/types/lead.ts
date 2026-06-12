@@ -25,6 +25,8 @@ export interface Lead {
   source: string;
   /** @nullable */
   assignedTo?: number | null;
+  /** @nullable */
+  lastContactedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

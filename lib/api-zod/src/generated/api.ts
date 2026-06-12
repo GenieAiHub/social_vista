@@ -288,6 +288,7 @@ export const ListLeadsResponseItem = zod.object({
   "status": zod.string(),
   "source": zod.string(),
   "assignedTo": zod.number().nullish(),
+  "lastContactedAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -318,7 +319,8 @@ export const UpdateLeadParams = zod.object({
 export const UpdateLeadBody = zod.object({
   "status": zod.enum(['new', 'contacted', 'booked', 'closed']).optional(),
   "assignedTo": zod.number().nullish(),
-  "adminNotes": zod.string().optional()
+  "adminNotes": zod.string().optional(),
+  "markContacted": zod.boolean().optional().describe('When true, records the current time as the lead\'s last-contacted timestamp.')
 })
 
 export const UpdateLeadResponse = zod.object({
@@ -333,6 +335,7 @@ export const UpdateLeadResponse = zod.object({
   "status": zod.string(),
   "source": zod.string(),
   "assignedTo": zod.number().nullish(),
+  "lastContactedAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -380,6 +383,7 @@ export const ReplyToLeadResponse = zod.object({
   "status": zod.string(),
   "source": zod.string(),
   "assignedTo": zod.number().nullish(),
+  "lastContactedAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
