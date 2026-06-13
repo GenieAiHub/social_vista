@@ -9,6 +9,7 @@ import staffRouter from "./staff";
 import rolesRouter from "./roles";
 import leadsRouter from "./leads";
 import tasksRouter from "./tasks";
+import emailAssetsRouter from "./email-assets";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(staffRouter);
 router.use(rolesRouter);
 router.use(leadsRouter);
 router.use(tasksRouter);
+router.use(emailAssetsRouter);
 
 export default router;

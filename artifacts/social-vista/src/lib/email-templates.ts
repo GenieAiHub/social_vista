@@ -118,23 +118,53 @@ function textToHtml(input: string): string {
     .join("");
 }
 
+export type ImagePlacement = "banner" | "inline";
+
+function safeImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  // Preview runs same-origin, so relative asset paths are valid here too.
+  if (!/^(https?:\/\/|\/)/i.test(trimmed)) return null;
+  return escapeHtml(trimmed);
+}
+
 /**
  * Renders the full branded email HTML for the live preview. Mirrors
  * renderLeadTemplate on the server so what staff see matches what is sent.
  */
-export function renderPreview(id: LeadTemplateId, args: { name: string; message: string }): string {
+export function renderPreview(
+  id: LeadTemplateId,
+  args: {
+    name: string;
+    message: string;
+    imageUrl?: string | null;
+    imagePlacement?: ImagePlacement | null;
+  },
+): string {
   const { theme } = getPreset(id);
   const name = args.name.trim() || "there";
+  const safeUrl = safeImageUrl(args.imageUrl);
+  const placement: ImagePlacement = args.imagePlacement ?? "banner";
+  const banner =
+    safeUrl && placement === "banner"
+      ? `<img src="${safeUrl}" alt="" style="display:block;width:100%;max-width:560px;height:auto;border:0;border-radius:16px 16px 0 0;" />`
+      : "";
+  const inline =
+    safeUrl && placement === "inline"
+      ? `<img src="${safeUrl}" alt="" style="display:block;width:100%;max-width:496px;height:auto;border:0;border-radius:12px;margin:0 0 16px;" />`
+      : "";
   return `<!doctype html>
 <html>
   <body style="margin:0;padding:0;background:${theme.bg};font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;">
     <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
-      <div style="background:${theme.headerBg};border-radius:16px 16px 0 0;padding:28px 32px;">
+      ${banner}
+      <div style="background:${theme.headerBg};${banner ? "" : "border-radius:16px 16px 0 0;"}padding:28px 32px;">
         <h1 style="margin:0;color:${theme.headerColor};font-size:22px;letter-spacing:0.5px;">Social Vista</h1>
         <p style="margin:6px 0 0;color:${theme.taglineColor};font-size:13px;">${theme.tagline}</p>
       </div>
       <div style="background:#ffffff;border-radius:0 0 16px 16px;padding:32px;">
         <p style="margin:0 0 16px;font-size:16px;font-weight:bold;">Hi ${escapeHtml(name)},</p>
+        ${inline}
         ${textToHtml(args.message)}
         <p style="margin:16px 0 0;line-height:1.6;">${theme.signoff}</p>
       </div>

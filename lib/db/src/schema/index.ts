@@ -7,3 +7,4 @@ export * from "./roles";
 export * from "./leads";
 export * from "./leadActivities";
 export * from "./tasks";
+export * from "./email-assets";

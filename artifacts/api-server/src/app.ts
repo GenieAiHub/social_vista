@@ -31,6 +31,11 @@ app.use(
   }),
 );
 app.use(cors());
+// Image uploads (base64 JSON) need a larger body than the default 100kb. Mount a
+// higher-limit parser scoped to the upload route BEFORE the global parser; once
+// body-parser parses a request it sets req._body, so the global json() below
+// skips it. All other routes keep the conservative default limit.
+app.use("/api/admin/email-assets", express.json({ limit: "8mb" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

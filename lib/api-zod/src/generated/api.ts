@@ -474,12 +474,16 @@ export const replyToLeadBodySubjectMax = 200;
 
 export const replyToLeadBodyMessageMax = 5000;
 
+export const replyToLeadBodyImageUrlMax = 2000;
+
 
 
 export const ReplyToLeadBody = zod.object({
   "subject": zod.string().min(1).max(replyToLeadBodySubjectMax),
   "message": zod.string().min(1).max(replyToLeadBodyMessageMax),
-  "templateId": zod.enum(['intro', 'appointment', 'followup', 'proposal', 'promo']).optional()
+  "templateId": zod.enum(['intro', 'appointment', 'followup', 'proposal', 'promo']).optional(),
+  "imageUrl": zod.string().max(replyToLeadBodyImageUrlMax).nullish(),
+  "imagePlacement": zod.enum(['banner', 'inline']).optional()
 })
 
 export const ReplyToLeadResponse = zod.object({
@@ -497,6 +501,23 @@ export const ReplyToLeadResponse = zod.object({
   "lastContactedAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Upload an image for use in lead emails (admin)
+ */
+export const uploadEmailAssetBodyFilenameMax = 255;
+
+export const uploadEmailAssetBodyMimeTypeMax = 100;
+
+
+
+
+export const UploadEmailAssetBody = zod.object({
+  "filename": zod.string().max(uploadEmailAssetBodyFilenameMax).nullish(),
+  "mimeType": zod.string().min(1).max(uploadEmailAssetBodyMimeTypeMax),
+  "dataBase64": zod.string().min(1).describe('Base64-encoded image bytes (no data URL prefix).')
 })
 
 

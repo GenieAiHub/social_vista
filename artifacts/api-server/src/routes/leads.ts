@@ -279,12 +279,30 @@ router.post("/admin/leads/:id/reply", requireAuth, requirePermission("canEmailLe
       res.status(400).json({ error: "This lead has no email address to reply to" });
       return;
     }
+    // The client sends a relative asset path (e.g. /api/email-assets/12). Email
+    // clients fetch images by absolute URL, so resolve it against an origin
+    // before embedding. Prefer the configured canonical origin (PUBLIC_APP_URL)
+    // and only fall back to the request host when it isn't set, so outbound
+    // email links don't depend on a (spoofable) Host header.
+    let imageUrl: string | null = body.imageUrl ?? null;
+    if (imageUrl && imageUrl.startsWith("/")) {
+      const configured = process.env.PUBLIC_APP_URL?.replace(/\/$/, "");
+      if (configured) {
+        imageUrl = `${configured}${imageUrl}`;
+      } else {
+        const proto = (req.headers["x-forwarded-proto"] as string | undefined)?.split(",")[0] ?? req.protocol;
+        const host = req.get("host");
+        imageUrl = host ? `${proto}://${host}${imageUrl}` : imageUrl;
+      }
+    }
     const sent = await sendLeadReply({
       to: existing.email,
       name: existing.name,
       subject: body.subject,
       message: body.message,
       templateId: body.templateId,
+      imageUrl,
+      imagePlacement: body.imagePlacement,
     });
     if (!sent) {
       res.status(502).json({ error: "Email could not be sent. Check the Resend configuration." });

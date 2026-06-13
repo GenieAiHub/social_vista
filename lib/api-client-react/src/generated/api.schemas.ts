@@ -269,6 +269,14 @@ export const LeadReplyInputTemplateId = {
   promo: 'promo',
 } as const;
 
+export type LeadReplyInputImagePlacement = typeof LeadReplyInputImagePlacement[keyof typeof LeadReplyInputImagePlacement];
+
+
+export const LeadReplyInputImagePlacement = {
+  banner: 'banner',
+  inline: 'inline',
+} as const;
+
 export interface LeadReplyInput {
   /**
      * @minLength 1
@@ -281,6 +289,39 @@ export interface LeadReplyInput {
      */
   message: string;
   templateId?: LeadReplyInputTemplateId;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  imageUrl?: string | null;
+  imagePlacement?: LeadReplyInputImagePlacement;
+}
+
+export interface EmailAssetUpload {
+  /**
+     * @maxLength 255
+     * @nullable
+     */
+  filename?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  mimeType: string;
+  /**
+     * Base64-encoded image bytes (no data URL prefix).
+     * @minLength 1
+     */
+  dataBase64: string;
+}
+
+export interface EmailAsset {
+  id: number;
+  /** Path that serves the image (prefix with origin for emails). */
+  url: string;
+  mimeType: string;
+  /** @nullable */
+  filename?: string | null;
 }
 
 export interface LeadActivity {

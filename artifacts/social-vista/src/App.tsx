@@ -19,6 +19,7 @@ import AdminServices from "@/pages/admin/ServicesAdmin";
 import AdminContent from "@/pages/admin/ContentAdmin";
 import AdminContacts from "@/pages/admin/ContactsAdmin";
 import AdminLeads from "@/pages/admin/LeadsAdmin";
+import AdminEmail from "@/pages/admin/EmailComposerPage";
 import AdminTasks from "@/pages/admin/TasksAdmin";
 import AdminStaff from "@/pages/admin/StaffAdmin";
 import AdminRoles from "@/pages/admin/RolesAdmin";
@@ -93,6 +94,9 @@ function Router() {
         </Route>
         <Route path="/admin/leads">
           <AdminGuard><AdminLeads /></AdminGuard>
+        </Route>
+        <Route path="/admin/email">
+          <AdminGuard><AdminEmail /></AdminGuard>
         </Route>
         <Route path="/admin/tasks">
           <AdminGuard><AdminTasks /></AdminGuard>

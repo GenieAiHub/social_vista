@@ -154,21 +154,50 @@ const TEMPLATE_THEMES: Record<LeadTemplateId, TemplateTheme> = {
  * Renders a staff-composed message inside a themed branded shell. `bodyHtml`
  * should already be escaped/sanitized (use textToHtml).
  */
+export type ImagePlacement = "banner" | "inline";
+
+/** Allows only http(s) URLs in email image tags to avoid HTML injection. */
+function safeImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!/^https?:\/\//i.test(trimmed)) return null;
+  return escapeHtml(trimmed);
+}
+
+function bannerImg(url: string): string {
+  return `<img src="${url}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;border-radius:16px 16px 0 0;" />`;
+}
+
+function inlineImg(url: string): string {
+  return `<img src="${url}" alt="" style="display:block;width:100%;max-width:496px;height:auto;border:0;border-radius:12px;margin:0 0 16px;" />`;
+}
+
 export function renderLeadTemplate(
   templateId: LeadTemplateId,
-  args: { name: string; bodyHtml: string },
+  args: {
+    name: string;
+    bodyHtml: string;
+    imageUrl?: string | null;
+    imagePlacement?: ImagePlacement | null;
+  },
 ): string {
   const theme = TEMPLATE_THEMES[templateId] ?? TEMPLATE_THEMES.intro;
+  const safeUrl = safeImageUrl(args.imageUrl);
+  const placement: ImagePlacement = args.imagePlacement ?? "banner";
+  const banner = safeUrl && placement === "banner" ? bannerImg(safeUrl) : "";
+  const inline = safeUrl && placement === "inline" ? inlineImg(safeUrl) : "";
   return `<!doctype html>
 <html>
   <body style="margin:0;padding:0;background:${theme.bg};font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;">
     <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
-      <div style="background:${theme.headerBg};border-radius:16px 16px 0 0;padding:28px 32px;">
+      ${banner}
+      <div style="background:${theme.headerBg};${banner ? "" : "border-radius:16px 16px 0 0;"}padding:28px 32px;">
         <h1 style="margin:0;color:${theme.headerColor};font-size:22px;letter-spacing:0.5px;">Social Vista</h1>
         <p style="margin:6px 0 0;color:${theme.taglineColor};font-size:13px;">${theme.tagline}</p>
       </div>
       <div style="background:#ffffff;border-radius:0 0 16px 16px;padding:32px;">
         <p style="margin:0 0 16px;font-size:16px;font-weight:bold;">Hi ${escapeHtml(args.name)},</p>
+        ${inline}
         ${args.bodyHtml}
         <p style="margin:16px 0 0;line-height:1.6;">${theme.signoff}</p>
       </div>
@@ -212,10 +241,14 @@ export async function sendLeadReply(args: {
   subject: string;
   message: string;
   templateId?: LeadTemplateId | null;
+  imageUrl?: string | null;
+  imagePlacement?: ImagePlacement | null;
 }): Promise<boolean> {
   const bodyHtml = renderLeadTemplate(args.templateId ?? "intro", {
     name: args.name,
     bodyHtml: textToHtml(args.message),
+    imageUrl: args.imageUrl,
+    imagePlacement: args.imagePlacement,
   });
   const text = `Hi ${args.name},\n\n${args.message}\n\nWarm regards,\nThe Social Vista Team`;
   return send({ to: args.to, subject: args.subject, html: bodyHtml, text });

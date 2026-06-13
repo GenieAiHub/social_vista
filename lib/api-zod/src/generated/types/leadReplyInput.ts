@@ -5,6 +5,7 @@
  * Social Vista API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { LeadReplyInputImagePlacement } from './leadReplyInputImagePlacement';
 import type { LeadReplyInputTemplateId } from './leadReplyInputTemplateId';
 
 export interface LeadReplyInput {
@@ -19,4 +20,10 @@ export interface LeadReplyInput {
      */
   message: string;
   templateId?: LeadReplyInputTemplateId;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  imageUrl?: string | null;
+  imagePlacement?: LeadReplyInputImagePlacement;
 }

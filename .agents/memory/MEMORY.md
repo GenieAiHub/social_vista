@@ -5,5 +5,6 @@
 - [Social Vista site map](social-vista-site-map.md) — nav (Home, Services▾, About, Blog, Pricing, Contact; FAQ route exists but unlinked), routes, and where page content lives (blog-content.ts, static pages).
 - [Social Vista color themes](social-vista-theme.md) — 3 site-wide palettes via data-theme + CSS-var overrides; persisted as content_blocks key=site_theme (no DB/API changes); admin picker at /admin/theme.
 - [Lead activities timeline](lead-activities-timeline.md) — per-lead interaction log auto-appended inside lead routes (status/note/assign/contacted/email) + manual entries; denormalized author_name.
+- [Email image hosting](email-image-hosting.md) — lead-email images stored in DB + served via public route (NOT object storage; Railway/Neon); outbound URLs must be absolute via PUBLIC_APP_URL.
 - [Roles & permissions](social-vista-roles-permissions.md) — staff.roleId→roles(6 flags); server (requirePermission) is the trust boundary, client hasPermission is UX only, owners always pass; email template client/server parity.
 - [Codegen post-merge staleness](codegen-post-merge.md) — merges touching openapi.yaml can leave api-client-react/zod stale and break the admin bundle ("can't log in"); rerun codegen. post-merge.sh now does this.

@@ -483,6 +483,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/Lead"
 
+  /admin/email-assets:
+    post:
+      operationId: uploadEmailAsset
+      tags: [admin]
+      summary: Upload an image for use in lead emails (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailAssetUpload"
+      responses:
+        "201":
+          description: Image stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailAsset"
+
   /admin/tasks:
     get:
       operationId: listTasks
@@ -1141,6 +1160,42 @@ components:
         templateId:
           type: string
           enum: [intro, appointment, followup, proposal, promo]
+        imageUrl:
+          type: ["string", "null"]
+          maxLength: 2000
+        imagePlacement:
+          type: string
+          enum: [banner, inline]
+
+    EmailAssetUpload:
+      type: object
+      required: [mimeType, dataBase64]
+      properties:
+        filename:
+          type: ["string", "null"]
+          maxLength: 255
+        mimeType:
+          type: string
+          minLength: 1
+          maxLength: 100
+        dataBase64:
+          type: string
+          minLength: 1
+          description: Base64-encoded image bytes (no data URL prefix).
+
+    EmailAsset:
+      type: object
+      required: [id, url, mimeType]
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          description: Path that serves the image (prefix with origin for emails).
+        mimeType:
+          type: string
+        filename:
+          type: ["string", "null"]
 
     LeadActivity:
       type: object

@@ -52,6 +52,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 - After seeding/importing rows into the Neon prod DB, resync serial sequences (`SELECT setval(...)`) or inserts will collide on duplicate ids.
 - Set `ADMIN_USERNAME`/`ADMIN_PASSWORD` in prod before first deploy, or change the seeded owner password immediately after first login.
 - Email: set `RESEND_API_KEY` (and `RESEND_FROM_EMAIL` on a Resend-verified domain) in prod for live sending. Without a verified domain, Resend only delivers to your own account email via the `onboarding@resend.dev` sender. Without the key, all sends are silently skipped (logged).
+- Email images: uploaded composer images are stored in the `email_assets` table (base64) and served by the public `GET /api/email-assets/:id` route — NOT object storage (unavailable on Railway). Outbound email `<img>` URLs must be absolute; the reply route prefers `PUBLIC_APP_URL` and falls back to the request host. Set `PUBLIC_APP_URL` (e.g. `https://yourdomain.com`) in prod so email images resolve to a canonical, non-spoofable origin.
 
 ## Pointers
 

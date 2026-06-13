@@ -30,6 +30,8 @@ import type {
   ContentBlock,
   ContentBlockInput,
   DeleteResult,
+  EmailAsset,
+  EmailAssetUpload,
   HealthStatus,
   Lead,
   LeadActivity,
@@ -1925,6 +1927,77 @@ export const useReplyToLead = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getReplyToLeadMutationOptions(options));
+    }
+
+export const getUploadEmailAssetUrl = () => {
+
+
+
+
+  return `/api/admin/email-assets`
+}
+
+/**
+ * @summary Upload an image for use in lead emails (admin)
+ */
+export const uploadEmailAsset = async (emailAssetUpload: EmailAssetUpload, options?: RequestInit): Promise<EmailAsset> => {
+
+  return customFetch<EmailAsset>(getUploadEmailAssetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailAssetUpload,)
+  }
+);}
+
+
+
+
+export const getUploadEmailAssetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadEmailAsset>>, TError,{data: BodyType<EmailAssetUpload>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadEmailAsset>>, TError,{data: BodyType<EmailAssetUpload>}, TContext> => {
+
+const mutationKey = ['uploadEmailAsset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadEmailAsset>>, {data: BodyType<EmailAssetUpload>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadEmailAsset(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadEmailAssetMutationResult = NonNullable<Awaited<ReturnType<typeof uploadEmailAsset>>>
+    export type UploadEmailAssetMutationBody = BodyType<EmailAssetUpload>
+    export type UploadEmailAssetMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Upload an image for use in lead emails (admin)
+ */
+export const useUploadEmailAsset = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadEmailAsset>>, TError,{data: BodyType<EmailAssetUpload>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadEmailAsset>>,
+        TError,
+        {data: BodyType<EmailAssetUpload>},
+        TContext
+      > => {
+      return useMutation(getUploadEmailAssetMutationOptions(options));
     }
 
 export const getListTasksUrl = (params?: ListTasksParams,) => {
