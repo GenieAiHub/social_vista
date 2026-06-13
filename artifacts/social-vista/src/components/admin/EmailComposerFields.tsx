@@ -10,6 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { TEMPLATE_PRESETS } from "@/lib/email-templates";
 import type { EmailComposer } from "@/hooks/use-email-composer";
@@ -37,9 +47,17 @@ export default function EmailComposerFields({
   });
   const deleteAsset = useDeleteEmailAsset();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; url: string } | null>(null);
 
-  function handleDelete(e: React.MouseEvent, id: number, url: string) {
+  function requestDelete(e: React.MouseEvent, id: number, url: string) {
     e.stopPropagation();
+    setPendingDelete({ id, url });
+  }
+
+  function confirmDelete() {
+    if (!pendingDelete) return;
+    const { id, url } = pendingDelete;
+    setPendingDelete(null);
     setDeletingId(id);
     deleteAsset.mutate(
       { id },
@@ -245,7 +263,7 @@ export default function EmailComposerFields({
                           </button>
                           <button
                             type="button"
-                            onClick={(e) => handleDelete(e, img.id, img.url)}
+                            onClick={(e) => requestDelete(e, img.id, img.url)}
                             disabled={deletingId === img.id}
                             className="absolute top-1 right-1 rounded-full bg-background/90 border border-border p-1 text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-destructive hover:text-destructive-foreground transition-all disabled:opacity-100"
                             aria-label="Delete image"
@@ -289,6 +307,32 @@ export default function EmailComposerFields({
           />
         </div>
       </div>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent data-testid="dialog-confirm-delete-image">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this image?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the image from your library. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-image">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete-image"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
