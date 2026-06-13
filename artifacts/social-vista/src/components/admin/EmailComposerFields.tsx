@@ -1,5 +1,6 @@
-import { useRef } from "react";
-import { ImagePlus, Loader2, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { ImagePlus, Images, Loader2, X } from "lucide-react";
+import { useListEmailAssets, getListEmailAssetsQueryKey } from "@workspace/api-client-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +25,10 @@ export default function EmailComposerFields({
 }) {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const { data: recentImages, isLoading: loadingLibrary } = useListEmailAssets({
+    query: { enabled: showLibrary, queryKey: getListEmailAssetsQueryKey() },
+  });
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -150,21 +155,72 @@ export default function EmailComposerFields({
               </div>
             </div>
           ) : (
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-1.5 w-full"
-              onClick={() => fileRef.current?.click()}
-              disabled={composer.uploading}
-              data-testid="button-upload-image"
-            >
-              {composer.uploading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <ImagePlus className="w-4 h-4 mr-2" />
+            <div className="mt-1.5 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={composer.uploading}
+                  data-testid="button-upload-image"
+                >
+                  {composer.uploading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <ImagePlus className="w-4 h-4 mr-2" />
+                  )}
+                  {composer.uploading ? "Uploading…" : "Upload"}
+                </Button>
+                <Button
+                  type="button"
+                  variant={showLibrary ? "default" : "outline"}
+                  onClick={() => setShowLibrary((v) => !v)}
+                  data-testid="button-toggle-image-library"
+                >
+                  <Images className="w-4 h-4 mr-2" />
+                  Recent images
+                </Button>
+              </div>
+              {showLibrary && (
+                <div
+                  className="rounded-lg border border-border p-2 bg-muted/20"
+                  data-testid="image-library"
+                >
+                  {loadingLibrary ? (
+                    <div className="flex items-center justify-center py-6 text-muted-foreground">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    </div>
+                  ) : recentImages && recentImages.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                      {recentImages.map((img) => (
+                        <button
+                          key={img.id}
+                          type="button"
+                          onClick={() => {
+                            composer.selectImage(img.url);
+                            setShowLibrary(false);
+                            toast({ title: "Image added to the email." });
+                          }}
+                          className="rounded-md border border-border overflow-hidden bg-white hover:border-primary transition-colors aspect-square"
+                          title={img.filename ?? "Email image"}
+                          data-testid={`button-library-image-${img.id}`}
+                        >
+                          <img
+                            src={img.url}
+                            alt={img.filename ?? "Email image"}
+                            className="w-full h-full object-contain"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-6">
+                      No images uploaded yet.
+                    </p>
+                  )}
+                </div>
               )}
-              {composer.uploading ? "Uploading…" : "Upload image"}
-            </Button>
+            </div>
           )}
           <p className="text-[10px] text-muted-foreground mt-1.5">
             PNG, JPEG, GIF, or WebP up to 5MB.

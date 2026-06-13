@@ -1929,6 +1929,83 @@ export const useReplyToLead = <TError = ErrorType<unknown>,
       return useMutation(getReplyToLeadMutationOptions(options));
     }
 
+export const getListEmailAssetsUrl = () => {
+
+
+
+
+  return `/api/admin/email-assets`
+}
+
+/**
+ * @summary List previously uploaded email images for reuse (admin)
+ */
+export const listEmailAssets = async ( options?: RequestInit): Promise<EmailAsset[]> => {
+
+  return customFetch<EmailAsset[]>(getListEmailAssetsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEmailAssetsQueryKey = () => {
+    return [
+    `/api/admin/email-assets`
+    ] as const;
+    }
+
+
+export const getListEmailAssetsQueryOptions = <TData = Awaited<ReturnType<typeof listEmailAssets>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEmailAssets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEmailAssetsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEmailAssets>>> = ({ signal }) => listEmailAssets({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEmailAssets>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListEmailAssetsQueryResult = NonNullable<Awaited<ReturnType<typeof listEmailAssets>>>
+export type ListEmailAssetsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List previously uploaded email images for reuse (admin)
+ */
+
+export function useListEmailAssets<TData = Awaited<ReturnType<typeof listEmailAssets>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEmailAssets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListEmailAssetsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getUploadEmailAssetUrl = () => {
 
 

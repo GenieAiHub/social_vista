@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { db, emailAssetsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { UploadEmailAssetBody } from "@workspace/api-zod";
 import { requireAuth, requirePermission, type AuthedRequest } from "../lib/auth.js";
 
 const router = Router();
+
+const LIST_LIMIT = 60;
 
 const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB decoded
@@ -48,6 +50,36 @@ router.post(
     } catch (err) {
       req.log.error({ err }, "Failed to upload email asset");
       res.status(400).json({ error: "Invalid input" });
+    }
+  },
+);
+
+router.get(
+  "/admin/email-assets",
+  requireAuth,
+  requirePermission("canEmailLeads"),
+  async (req, res) => {
+    try {
+      const assets = await db
+        .select({
+          id: emailAssetsTable.id,
+          mimeType: emailAssetsTable.mimeType,
+          filename: emailAssetsTable.filename,
+        })
+        .from(emailAssetsTable)
+        .orderBy(desc(emailAssetsTable.createdAt))
+        .limit(LIST_LIMIT);
+      res.json(
+        assets.map((asset) => ({
+          id: asset.id,
+          url: `/api/email-assets/${asset.id}`,
+          mimeType: asset.mimeType,
+          filename: asset.filename,
+        })),
+      );
+    } catch (err) {
+      req.log.error({ err }, "Failed to list email assets");
+      res.status(500).json({ error: "Failed to load images" });
     }
   },
 );

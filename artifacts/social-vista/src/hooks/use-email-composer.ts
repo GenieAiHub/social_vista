@@ -28,6 +28,7 @@ export interface EmailComposer {
   setImagePlacement: (v: ImagePlacement) => void;
   applyTemplate: (id: LeadTemplateId) => void;
   uploadFile: (file: File) => Promise<void>;
+  selectImage: (url: string) => void;
   removeImage: () => void;
   previewHtml: (name: string) => string;
   payload: () => ReplyPayload;
@@ -78,6 +79,8 @@ export function useEmailComposer(initial: LeadTemplateId = "intro"): EmailCompos
     [upload],
   );
 
+  const selectImage = useCallback((url: string) => setImageUrl(url), []);
+
   const removeImage = useCallback(() => setImageUrl(null), []);
 
   const previewHtml = useCallback(
@@ -115,6 +118,7 @@ export function useEmailComposer(initial: LeadTemplateId = "intro"): EmailCompos
     setImagePlacement,
     applyTemplate,
     uploadFile,
+    selectImage,
     removeImage,
     previewHtml,
     payload,

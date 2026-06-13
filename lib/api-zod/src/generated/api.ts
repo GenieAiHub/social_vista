@@ -505,6 +505,18 @@ export const ReplyToLeadResponse = zod.object({
 
 
 /**
+ * @summary List previously uploaded email images for reuse (admin)
+ */
+export const ListEmailAssetsResponseItem = zod.object({
+  "id": zod.number(),
+  "url": zod.string().describe('Path that serves the image (prefix with origin for emails).'),
+  "mimeType": zod.string(),
+  "filename": zod.string().nullish()
+})
+export const ListEmailAssetsResponse = zod.array(ListEmailAssetsResponseItem)
+
+
+/**
  * @summary Upload an image for use in lead emails (admin)
  */
 export const uploadEmailAssetBodyFilenameMax = 255;
