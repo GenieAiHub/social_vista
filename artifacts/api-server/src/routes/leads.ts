@@ -21,6 +21,7 @@ import {
   sendContactedNotice,
   sendAppointmentConfirmation,
 } from "../lib/email.js";
+import { markEmailAssetUsedByUrl } from "../lib/email-assets.js";
 import type { Lead, LeadActivity } from "@workspace/db";
 
 const router = Router();
@@ -308,6 +309,10 @@ router.post("/admin/leads/:id/reply", requireAuth, requirePermission("canEmailLe
       res.status(502).json({ error: "Email could not be sent. Check the Resend configuration." });
       return;
     }
+    // The image was actually delivered, so keep its asset indefinitely (the
+    // recipient's email client will fetch it by URL). This also excludes it
+    // from the orphaned-asset cleanup sweep. Best-effort, never blocks.
+    void markEmailAssetUsedByUrl(imageUrl);
     // A successful reply advances a brand-new lead to "contacted", but never
     // regresses a lead that's already further along (booked/closed/contacted).
     const nextStatus = existing.status === "new" ? "contacted" : existing.status;

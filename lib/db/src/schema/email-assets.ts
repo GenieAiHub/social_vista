@@ -10,6 +10,10 @@ export const emailAssetsTable = pgTable("email_assets", {
   filename: text("filename"),
   createdBy: integer("created_by").references(() => staffTable.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  // Set the moment an asset is embedded in an email that was successfully sent.
+  // Used assets are kept indefinitely (recipients' clients fetch them by URL
+  // long after sending); only never-used assets are eligible for pruning.
+  usedAt: timestamp("used_at", { withTimezone: true }),
 });
 
 export const insertEmailAssetSchema = createInsertSchema(emailAssetsTable).omit({
