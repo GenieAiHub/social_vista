@@ -8,6 +8,7 @@ import {
   useDeleteStaff,
   useResetStaffPassword,
   getListStaffQueryKey,
+  ApiError,
   type StaffMember,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,6 +35,17 @@ import {
 } from "@/components/ui/dialog";
 import { getStoredUser } from "@/lib/admin-auth";
 import { useToast } from "@/hooks/use-toast";
+
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    if (err.status === 401 || err.status === 403) return "You don't have permission to do this. Sign in as an owner.";
+    const data = err.data;
+    if (data && typeof data === "object" && "error" in data && typeof (data as { error: unknown }).error === "string") {
+      return (data as { error: string }).error;
+    }
+  }
+  return fallback;
+}
 
 function CreateStaffDialog({ onCreated }: { onCreated: () => void }) {
   const createStaff = useCreateStaff();
@@ -63,7 +75,7 @@ function CreateStaffDialog({ onCreated }: { onCreated: () => void }) {
           setOpen(false);
           onCreated();
         },
-        onError: () => toast({ title: "Could not add member. Username may already exist.", variant: "destructive" }),
+        onError: (err) => toast({ title: errorMessage(err, "Could not add member. Username may already exist."), variant: "destructive" }),
       }
     );
   }
@@ -130,7 +142,7 @@ function ResetPasswordDialog({ member }: { member: StaffMember }) {
           setPassword("");
           setOpen(false);
         },
-        onError: () => toast({ title: "Could not reset password.", variant: "destructive" }),
+        onError: (err) => toast({ title: errorMessage(err, "Could not reset password."), variant: "destructive" }),
       }
     );
   }
@@ -183,7 +195,7 @@ export default function StaffAdmin() {
     }
     deleteStaff.mutate({ id: member.id }, {
       onSuccess: invalidate,
-      onError: () => toast({ title: "Could not delete member.", variant: "destructive" }),
+      onError: (err) => toast({ title: errorMessage(err, "Could not delete member."), variant: "destructive" }),
     });
   }
 
