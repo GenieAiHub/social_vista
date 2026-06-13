@@ -1,6 +1,11 @@
 import { useRef, useState } from "react";
-import { ImagePlus, Images, Loader2, X } from "lucide-react";
-import { useListEmailAssets, getListEmailAssetsQueryKey } from "@workspace/api-client-react";
+import { ImagePlus, Images, Loader2, Trash2, X } from "lucide-react";
+import {
+  useListEmailAssets,
+  useDeleteEmailAsset,
+  getListEmailAssetsQueryKey,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,11 +29,35 @@ export default function EmailComposerFields({
   previewHeight?: string;
 }) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [showLibrary, setShowLibrary] = useState(false);
   const { data: recentImages, isLoading: loadingLibrary } = useListEmailAssets({
     query: { enabled: showLibrary, queryKey: getListEmailAssetsQueryKey() },
   });
+  const deleteAsset = useDeleteEmailAsset();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  function handleDelete(e: React.MouseEvent, id: number, url: string) {
+    e.stopPropagation();
+    setDeletingId(id);
+    deleteAsset.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          if (composer.imageUrl === url) composer.removeImage();
+          queryClient.invalidateQueries({ queryKey: getListEmailAssetsQueryKey() });
+          toast({ title: "Image deleted." });
+        },
+        onError: () =>
+          toast({
+            title: "Could not delete the image. It may have already been sent.",
+            variant: "destructive",
+          }),
+        onSettled: () => setDeletingId(null),
+      },
+    );
+  }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -193,24 +222,43 @@ export default function EmailComposerFields({
                   ) : recentImages && recentImages.length > 0 ? (
                     <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
                       {recentImages.map((img) => (
-                        <button
+                        <div
                           key={img.id}
-                          type="button"
-                          onClick={() => {
-                            composer.selectImage(img.url);
-                            setShowLibrary(false);
-                            toast({ title: "Image added to the email." });
-                          }}
-                          className="rounded-md border border-border overflow-hidden bg-white hover:border-primary transition-colors aspect-square"
-                          title={img.filename ?? "Email image"}
-                          data-testid={`button-library-image-${img.id}`}
+                          className="relative group rounded-md border border-border overflow-hidden bg-white aspect-square"
                         >
-                          <img
-                            src={img.url}
-                            alt={img.filename ?? "Email image"}
-                            className="w-full h-full object-contain"
-                          />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              composer.selectImage(img.url);
+                              setShowLibrary(false);
+                              toast({ title: "Image added to the email." });
+                            }}
+                            className="w-full h-full hover:opacity-90 transition-opacity"
+                            title={img.filename ?? "Email image"}
+                            data-testid={`button-library-image-${img.id}`}
+                          >
+                            <img
+                              src={img.url}
+                              alt={img.filename ?? "Email image"}
+                              className="w-full h-full object-contain"
+                            />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDelete(e, img.id, img.url)}
+                            disabled={deletingId === img.id}
+                            className="absolute top-1 right-1 rounded-full bg-background/90 border border-border p-1 text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-destructive hover:text-destructive-foreground transition-all disabled:opacity-100"
+                            aria-label="Delete image"
+                            title="Delete image"
+                            data-testid={`button-delete-image-${img.id}`}
+                          >
+                            {deletingId === img.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
                       ))}
                     </div>
                   ) : (

@@ -534,6 +534,18 @@ export const UploadEmailAssetBody = zod.object({
 
 
 /**
+ * @summary Delete an unused email image (admin)
+ */
+export const DeleteEmailAssetParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteEmailAssetResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary List tasks (admin)
  */
 export const ListTasksQueryParams = zod.object({

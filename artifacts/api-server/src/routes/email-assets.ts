@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, emailAssetsTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
-import { UploadEmailAssetBody } from "@workspace/api-zod";
+import { and, desc, eq, isNull } from "drizzle-orm";
+import { UploadEmailAssetBody, DeleteEmailAssetParams } from "@workspace/api-zod";
 import { requireAuth, requirePermission, type AuthedRequest } from "../lib/auth.js";
 
 const router = Router();
@@ -80,6 +80,42 @@ router.get(
     } catch (err) {
       req.log.error({ err }, "Failed to list email assets");
       res.status(500).json({ error: "Failed to load images" });
+    }
+  },
+);
+
+router.delete(
+  "/admin/email-assets/:id",
+  requireAuth,
+  requirePermission("canEmailLeads"),
+  async (req, res) => {
+    try {
+      const { id } = DeleteEmailAssetParams.parse({ id: Number(req.params.id) });
+      // Only delete assets that have never been sent. Used assets are kept
+      // indefinitely because recipients' email clients fetch them by URL long
+      // after delivery; deleting one would break already-sent emails.
+      const deleted = await db
+        .delete(emailAssetsTable)
+        .where(and(eq(emailAssetsTable.id, id), isNull(emailAssetsTable.usedAt)))
+        .returning({ id: emailAssetsTable.id });
+      if (deleted.length === 0) {
+        const [existing] = await db
+          .select({ id: emailAssetsTable.id })
+          .from(emailAssetsTable)
+          .where(eq(emailAssetsTable.id, id));
+        if (existing) {
+          res.status(409).json({
+            error: "This image has already been sent and can't be deleted.",
+          });
+          return;
+        }
+        res.status(404).json({ error: "Image not found." });
+        return;
+      }
+      res.json({ success: true });
+    } catch (err) {
+      req.log.error({ err }, "Failed to delete email asset");
+      res.status(500).json({ error: "Internal server error" });
     }
   },
 );

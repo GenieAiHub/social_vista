@@ -2077,6 +2077,76 @@ export const useUploadEmailAsset = <TError = ErrorType<unknown>,
       return useMutation(getUploadEmailAssetMutationOptions(options));
     }
 
+export const getDeleteEmailAssetUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/email-assets/${id}`
+}
+
+/**
+ * @summary Delete an unused email image (admin)
+ */
+export const deleteEmailAsset = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteEmailAssetUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteEmailAssetMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmailAsset>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEmailAsset>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteEmailAsset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEmailAsset>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteEmailAsset(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEmailAssetMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEmailAsset>>>
+
+    export type DeleteEmailAssetMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete an unused email image (admin)
+ */
+export const useDeleteEmailAsset = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmailAsset>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEmailAsset>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteEmailAssetMutationOptions(options));
+    }
+
 export const getListTasksUrl = (params?: ListTasksParams,) => {
   const normalizedParams = new URLSearchParams();
 

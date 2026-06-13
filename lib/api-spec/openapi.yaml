@@ -515,6 +515,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/EmailAsset"
 
+  /admin/email-assets/{id}:
+    delete:
+      operationId: deleteEmailAsset
+      tags: [admin]
+      summary: Delete an unused email image (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+        "409":
+          description: Image has already been sent and cannot be deleted
+
   /admin/tasks:
     get:
       operationId: listTasks
