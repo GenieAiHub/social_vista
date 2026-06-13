@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Groq from "groq-sdk";
 import { db, servicesTable, leadsTable } from "@workspace/db";
+import { and, or, eq, gte, desc, type SQL } from "drizzle-orm";
 import { SendChatMessageBody } from "@workspace/api-zod";
 import { servicesKnowledge, normalizeKey } from "../lib/services-knowledge.js";
 import { logActivity, createdNoteForSource } from "./leads.js";
@@ -157,26 +158,63 @@ router.post("/chat", async (req, res) => {
         try {
           const args = JSON.parse(call.function.arguments || "{}") as LeadArgs;
           if (args.name && (args.email || args.phone)) {
-            const [lead] = await db.insert(leadsTable).values({
-              name: args.name,
-              email: args.email ?? null,
-              phone: args.phone ?? null,
-              serviceInterest: args.serviceInterest ?? null,
-              preferredTime: args.preferredTime ?? null,
-              message: args.message ?? null,
-              source: "chat",
-            }).returning();
-            try {
-              await logActivity({
-                leadId: lead.id,
-                type: "created",
-                note: createdNoteForSource("chat"),
-              });
-            } catch (actErr) {
-              req.log.error({ err: actErr }, "Failed to record lead activity");
+            // The assistant re-calls this tool on every new detail during a
+            // multi-turn booking. Match a recent chat lead by contact and
+            // update it in place so we don't create a duplicate lead per turn.
+            const recentCutoff = new Date(Date.now() - 6 * 60 * 60 * 1000);
+            const contactMatches: SQL[] = [];
+            if (args.email) contactMatches.push(eq(leadsTable.email, args.email));
+            if (args.phone) contactMatches.push(eq(leadsTable.phone, args.phone));
+            const [existing] = await db
+              .select()
+              .from(leadsTable)
+              .where(
+                and(
+                  eq(leadsTable.source, "chat"),
+                  gte(leadsTable.createdAt, recentCutoff),
+                  or(...contactMatches),
+                ),
+              )
+              .orderBy(desc(leadsTable.createdAt))
+              .limit(1);
+
+            if (existing) {
+              // Fill in any newly provided details without clobbering known ones.
+              await db
+                .update(leadsTable)
+                .set({
+                  name: args.name,
+                  email: args.email ?? existing.email,
+                  phone: args.phone ?? existing.phone,
+                  serviceInterest: args.serviceInterest ?? existing.serviceInterest,
+                  preferredTime: args.preferredTime ?? existing.preferredTime,
+                  message: args.message ?? existing.message,
+                })
+                .where(eq(leadsTable.id, existing.id));
+              leadCaptured = true;
+              result = "Lead already on file for this conversation; details updated.";
+            } else {
+              const [lead] = await db.insert(leadsTable).values({
+                name: args.name,
+                email: args.email ?? null,
+                phone: args.phone ?? null,
+                serviceInterest: args.serviceInterest ?? null,
+                preferredTime: args.preferredTime ?? null,
+                message: args.message ?? null,
+                source: "chat",
+              }).returning();
+              try {
+                await logActivity({
+                  leadId: lead.id,
+                  type: "created",
+                  note: createdNoteForSource("chat"),
+                });
+              } catch (actErr) {
+                req.log.error({ err: actErr }, "Failed to record lead activity");
+              }
+              leadCaptured = true;
+              result = "Lead saved successfully. The team will follow up.";
             }
-            leadCaptured = true;
-            result = "Lead saved successfully. The team will follow up.";
           } else {
             result = "Need at least a name and one contact method (email or phone) before saving.";
           }

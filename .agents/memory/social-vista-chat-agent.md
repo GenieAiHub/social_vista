@@ -16,3 +16,5 @@ The chat agent (Groq `llama-3.3-70b-versatile`, route `POST /chat` in api-server
 **Trust note:** client-supplied history is untrusted but the role enum blocks any `system` injection; residual risk (a client faking its own prior assistant turns) only affects that caller's session — acceptable for a public marketing bot with no tools/private data.
 
 **Prompt guardrails:** answer only from the knowledge base, never invent pricing/timelines, always steer to the contact form / free consultation, keep replies ~150 words.
+
+**Lead-save idempotency (important):** the model re-calls `save_consultation_lead` on every new detail during a multi-turn booking, and the forwarded history is plain text only — the model has no memory that it already saved. So the save MUST be idempotent server-side, or each turn creates a duplicate lead. The route dedups by matching a recent (`createdAt` within ~6h) `source='chat'` lead on email OR phone and UPDATEs it in place, only inserting (+`created` activity) when no match. **Why:** prompt instructions alone ("only call once") don't stop the model. Don't switch to insert-only without re-introducing duplicates.
