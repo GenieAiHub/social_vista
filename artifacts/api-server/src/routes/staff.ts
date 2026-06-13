@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, staffTable } from "@workspace/db";
+import { db, staffTable, rolesTable } from "@workspace/db";
 import { eq, desc, and, ne, count } from "drizzle-orm";
 import {
   CreateStaffBody,
@@ -14,22 +14,41 @@ import type { Staff } from "@workspace/db";
 
 const router = Router();
 
-function serialize(s: Staff) {
+function serialize(s: Staff, roleName: string | null = null) {
   return {
     id: s.id,
     name: s.name,
     username: s.username,
     email: s.email,
     role: s.role,
+    roleId: s.roleId,
+    roleName,
     active: s.active,
     createdAt: s.createdAt.toISOString(),
   };
 }
 
+async function roleNameFor(roleId: number | null): Promise<string | null> {
+  if (roleId == null) return null;
+  const [row] = await db.select({ name: rolesTable.name }).from(rolesTable).where(eq(rolesTable.id, roleId));
+  return row?.name ?? null;
+}
+
+// Returns true when roleId is null/unset or references an existing role.
+async function roleIdIsValid(roleId: number | null | undefined): Promise<boolean> {
+  if (roleId == null) return true;
+  const [row] = await db.select({ id: rolesTable.id }).from(rolesTable).where(eq(rolesTable.id, roleId));
+  return Boolean(row);
+}
+
 router.get("/admin/staff", requireAuth, async (req, res) => {
   try {
-    const rows = await db.select().from(staffTable).orderBy(desc(staffTable.createdAt));
-    res.json(rows.map(serialize));
+    const rows = await db
+      .select({ staff: staffTable, roleName: rolesTable.name })
+      .from(staffTable)
+      .leftJoin(rolesTable, eq(staffTable.roleId, rolesTable.id))
+      .orderBy(desc(staffTable.createdAt));
+    res.json(rows.map((r) => serialize(r.staff, r.roleName)));
   } catch (err) {
     req.log.error({ err }, "Failed to list staff");
     res.status(500).json({ error: "Internal server error" });
@@ -47,6 +66,10 @@ router.post("/admin/staff", requireAuth, requireOwner, async (req, res) => {
       res.status(409).json({ error: "Username already taken" });
       return;
     }
+    if (!(await roleIdIsValid(body.roleId))) {
+      res.status(400).json({ error: "Selected lead role does not exist" });
+      return;
+    }
     const passwordHash = await hashPassword(body.password);
     const [staff] = await db
       .insert(staffTable)
@@ -55,10 +78,11 @@ router.post("/admin/staff", requireAuth, requireOwner, async (req, res) => {
         username: body.username,
         email: body.email ?? null,
         role: body.role ?? "staff",
+        roleId: body.roleId ?? null,
         passwordHash,
       })
       .returning();
-    res.status(201).json(serialize(staff));
+    res.status(201).json(serialize(staff, await roleNameFor(staff.roleId)));
   } catch (err) {
     req.log.error({ err }, "Failed to create staff");
     res.status(400).json({ error: "Invalid input" });
@@ -82,10 +106,16 @@ router.patch("/admin/staff/:id", requireAuth, requireOwner, async (req, res) => 
       }
     }
 
+    if (body.roleId !== undefined && !(await roleIdIsValid(body.roleId))) {
+      res.status(400).json({ error: "Selected lead role does not exist" });
+      return;
+    }
+
     const updates: Partial<typeof staffTable.$inferInsert> = {};
     if (body.name !== undefined) updates.name = body.name;
     if (body.email !== undefined) updates.email = body.email;
     if (body.role !== undefined) updates.role = body.role;
+    if (body.roleId !== undefined) updates.roleId = body.roleId;
     if (body.active !== undefined) updates.active = body.active;
 
     const [staff] = await db
@@ -94,7 +124,7 @@ router.patch("/admin/staff/:id", requireAuth, requireOwner, async (req, res) => 
       .where(eq(staffTable.id, id))
       .returning();
     if (!staff) { res.status(404).json({ error: "Not found" }); return; }
-    res.json(serialize(staff));
+    res.json(serialize(staff, await roleNameFor(staff.roleId)));
   } catch (err) {
     req.log.error({ err }, "Failed to update staff");
     res.status(400).json({ error: "Invalid input" });
@@ -140,7 +170,7 @@ router.patch("/admin/staff/:id/password", requireAuth, requireOwner, async (req,
       .where(eq(staffTable.id, id))
       .returning();
     if (!staff) { res.status(404).json({ error: "Not found" }); return; }
-    res.json(serialize(staff));
+    res.json(serialize(staff, await roleNameFor(staff.roleId)));
   } catch (err) {
     req.log.error({ err }, "Failed to reset password");
     res.status(400).json({ error: "Invalid input" });

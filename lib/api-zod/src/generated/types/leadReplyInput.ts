@@ -5,6 +5,7 @@
  * Social Vista API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { LeadReplyInputTemplateId } from './leadReplyInputTemplateId';
 
 export interface LeadReplyInput {
   /**
@@ -17,4 +18,5 @@ export interface LeadReplyInput {
      * @maxLength 5000
      */
   message: string;
+  templateId?: LeadReplyInputTemplateId;
 }

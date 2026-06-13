@@ -73,6 +73,15 @@ export interface AdminLoginInput {
   password: string;
 }
 
+export interface Permissions {
+  canViewLeads: boolean;
+  canCreateLeads: boolean;
+  canEditLeads: boolean;
+  canDeleteLeads: boolean;
+  canAssignLeads: boolean;
+  canEmailLeads: boolean;
+}
+
 export interface StaffMember {
   id: number;
   name: string;
@@ -80,6 +89,11 @@ export interface StaffMember {
   /** @nullable */
   email?: string | null;
   role: string;
+  /** @nullable */
+  roleId?: number | null;
+  /** @nullable */
+  roleName?: string | null;
+  permissions?: Permissions;
   active: boolean;
   createdAt: string;
 }
@@ -88,6 +102,46 @@ export interface AdminLoginResult {
   success: boolean;
   token?: string;
   user?: StaffMember;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  canViewLeads: boolean;
+  canCreateLeads: boolean;
+  canEditLeads: boolean;
+  canDeleteLeads: boolean;
+  canAssignLeads: boolean;
+  canEmailLeads: boolean;
+  createdAt: string;
+}
+
+export interface RoleInput {
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  name: string;
+  canViewLeads?: boolean;
+  canCreateLeads?: boolean;
+  canEditLeads?: boolean;
+  canDeleteLeads?: boolean;
+  canAssignLeads?: boolean;
+  canEmailLeads?: boolean;
+}
+
+export interface RoleUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  name?: string;
+  canViewLeads?: boolean;
+  canCreateLeads?: boolean;
+  canEditLeads?: boolean;
+  canDeleteLeads?: boolean;
+  canAssignLeads?: boolean;
+  canEmailLeads?: boolean;
 }
 
 export type StaffInputRole = typeof StaffInputRole[keyof typeof StaffInputRole];
@@ -104,6 +158,8 @@ export interface StaffInput {
   email?: string;
   password: string;
   role?: StaffInputRole;
+  /** @nullable */
+  roleId?: number | null;
 }
 
 export type StaffUpdateRole = typeof StaffUpdateRole[keyof typeof StaffUpdateRole];
@@ -118,6 +174,8 @@ export interface StaffUpdate {
   name?: string;
   email?: string;
   role?: StaffUpdateRole;
+  /** @nullable */
+  roleId?: number | null;
   active?: boolean;
 }
 
@@ -200,6 +258,17 @@ export interface LeadUpdate {
   markContacted?: boolean;
 }
 
+export type LeadReplyInputTemplateId = typeof LeadReplyInputTemplateId[keyof typeof LeadReplyInputTemplateId];
+
+
+export const LeadReplyInputTemplateId = {
+  intro: 'intro',
+  appointment: 'appointment',
+  followup: 'followup',
+  proposal: 'proposal',
+  promo: 'promo',
+} as const;
+
 export interface LeadReplyInput {
   /**
      * @minLength 1
@@ -211,6 +280,7 @@ export interface LeadReplyInput {
      * @maxLength 5000
      */
   message: string;
+  templateId?: LeadReplyInputTemplateId;
 }
 
 export interface LeadActivity {

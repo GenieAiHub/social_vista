@@ -5,6 +5,7 @@
  * Social Vista API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { Permissions } from './permissions';
 
 export interface StaffMember {
   id: number;
@@ -13,6 +14,11 @@ export interface StaffMember {
   /** @nullable */
   email?: string | null;
   role: string;
+  /** @nullable */
+  roleId?: number | null;
+  /** @nullable */
+  roleName?: string | null;
+  permissions?: Permissions;
   active: boolean;
   createdAt: string;
 }

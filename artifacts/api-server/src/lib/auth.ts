@@ -1,8 +1,9 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { db, staffTable } from "@workspace/db";
+import { db, staffTable, rolesTable } from "@workspace/db";
 import { count, eq } from "drizzle-orm";
+import type { Role } from "@workspace/db";
 import { logger } from "./logger.js";
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -13,11 +14,63 @@ if (!SESSION_SECRET) {
 
 const TOKEN_TTL = "7d";
 
+export interface LeadPermissions {
+  canViewLeads: boolean;
+  canCreateLeads: boolean;
+  canEditLeads: boolean;
+  canDeleteLeads: boolean;
+  canAssignLeads: boolean;
+  canEmailLeads: boolean;
+}
+
+export type PermissionKey = keyof LeadPermissions;
+
+const ALL_PERMISSIONS: LeadPermissions = {
+  canViewLeads: true,
+  canCreateLeads: true,
+  canEditLeads: true,
+  canDeleteLeads: true,
+  canAssignLeads: true,
+  canEmailLeads: true,
+};
+
+// Staff with no assigned role can see leads but take no actions until an owner
+// grants them a role.
+const VIEW_ONLY_PERMISSIONS: LeadPermissions = {
+  canViewLeads: true,
+  canCreateLeads: false,
+  canEditLeads: false,
+  canDeleteLeads: false,
+  canAssignLeads: false,
+  canEmailLeads: false,
+};
+
+/**
+ * Resolve the effective lead permissions for a staff member. Owners always have
+ * full access; staff inherit their assigned role's flags, falling back to
+ * view-only when no role is assigned.
+ */
+export function resolvePermissions(role: string, roleRow: Role | null | undefined): LeadPermissions {
+  if (role === "owner") return { ...ALL_PERMISSIONS };
+  if (!roleRow) return { ...VIEW_ONLY_PERMISSIONS };
+  return {
+    canViewLeads: roleRow.canViewLeads,
+    canCreateLeads: roleRow.canCreateLeads,
+    canEditLeads: roleRow.canEditLeads,
+    canDeleteLeads: roleRow.canDeleteLeads,
+    canAssignLeads: roleRow.canAssignLeads,
+    canEmailLeads: roleRow.canEmailLeads,
+  };
+}
+
 export interface AuthUser {
   id: number;
   username: string;
   name: string;
   role: string;
+  roleId: number | null;
+  roleName: string | null;
+  permissions: LeadPermissions;
 }
 
 export interface AuthedRequest extends Request {
@@ -32,7 +85,7 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
   return bcrypt.compare(plain, hash);
 }
 
-export function signToken(user: AuthUser): string {
+export function signToken(user: Pick<AuthUser, "id" | "username" | "name" | "role">): string {
   return jwt.sign(
     { sub: user.id, username: user.username, name: user.name, role: user.role },
     SESSION_SECRET as string,
@@ -69,6 +122,7 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
         username: staffTable.username,
         name: staffTable.name,
         role: staffTable.role,
+        roleId: staffTable.roleId,
         active: staffTable.active,
       })
       .from(staffTable)
@@ -80,11 +134,20 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
       return;
     }
 
+    let roleRow: Role | null = null;
+    if (member.roleId != null) {
+      const [row] = await db.select().from(rolesTable).where(eq(rolesTable.id, member.roleId)).limit(1);
+      roleRow = row ?? null;
+    }
+
     (req as AuthedRequest).staff = {
       id: member.id,
       username: member.username,
       name: member.name,
       role: member.role,
+      roleId: roleRow ? roleRow.id : null,
+      roleName: roleRow ? roleRow.name : null,
+      permissions: resolvePermissions(member.role, roleRow),
     };
     next();
   } catch {
@@ -100,6 +163,21 @@ export const requireOwner: RequestHandler = (req, res, next) => {
   }
   next();
 };
+
+/**
+ * Middleware factory enforcing a specific lead permission. Must run after
+ * `requireAuth` so `req.staff.permissions` is populated.
+ */
+export function requirePermission(key: PermissionKey): RequestHandler {
+  return (req, res, next) => {
+    const staff = (req as AuthedRequest).staff;
+    if (!staff || !staff.permissions[key]) {
+      res.status(403).json({ error: "You don't have permission to perform this action." });
+      return;
+    }
+    next();
+  };
+}
 
 /**
  * Ensure at least one owner account exists. On first run, seeds an owner

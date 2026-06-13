@@ -1,18 +1,27 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Menu, X, Users, UserCog, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Menu, X, Users, UserCog, ClipboardList, ShieldCheck } from "lucide-react";
 import logoUrl from "@assets/image_e709c6e4_1781263209469.png";
 import { useState } from "react";
-import { clearAuth, getStoredUser } from "@/lib/admin-auth";
+import { clearAuth, getStoredUser, hasPermission, type PermissionKey } from "@/lib/admin-auth";
 
-const navItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: typeof LayoutDashboard;
+  ownerOnly: boolean;
+  permission?: PermissionKey;
+}
+
+const navItems: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, ownerOnly: false },
-  { label: "Leads", href: "/admin/leads", icon: Users, ownerOnly: false },
+  { label: "Leads", href: "/admin/leads", icon: Users, ownerOnly: false, permission: "canViewLeads" },
   { label: "Tasks", href: "/admin/tasks", icon: ClipboardList, ownerOnly: false },
   { label: "Services", href: "/admin/services", icon: Settings, ownerOnly: false },
   { label: "Content", href: "/admin/content", icon: FileText, ownerOnly: false },
   { label: "Contacts", href: "/admin/contacts", icon: MessageSquare, ownerOnly: false },
   { label: "Theme", href: "/admin/theme", icon: Palette, ownerOnly: false },
   { label: "Staff", href: "/admin/staff", icon: UserCog, ownerOnly: true },
+  { label: "Roles", href: "/admin/roles", icon: ShieldCheck, ownerOnly: true },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +29,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = getStoredUser();
   const isOwner = user?.role === "owner";
-  const visibleNav = navItems.filter((item) => !item.ownerOnly || isOwner);
+  const visibleNav = navItems.filter((item) => {
+    if (item.ownerOnly && !isOwner) return false;
+    if (item.permission && !hasPermission(item.permission)) return false;
+    return true;
+  });
 
   function logout() {
     clearAuth();

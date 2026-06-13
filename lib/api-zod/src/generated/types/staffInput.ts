@@ -13,4 +13,6 @@ export interface StaffInput {
   email?: string;
   password: string;
   role?: StaffInputRole;
+  /** @nullable */
+  roleId?: number | null;
 }

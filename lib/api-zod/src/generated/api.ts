@@ -181,6 +181,16 @@ export const AdminLoginResponse = zod.object({
   "username": zod.string(),
   "email": zod.string().nullish(),
   "role": zod.string(),
+  "roleId": zod.number().nullish(),
+  "roleName": zod.string().nullish(),
+  "permissions": zod.object({
+  "canViewLeads": zod.boolean(),
+  "canCreateLeads": zod.boolean(),
+  "canEditLeads": zod.boolean(),
+  "canDeleteLeads": zod.boolean(),
+  "canAssignLeads": zod.boolean(),
+  "canEmailLeads": zod.boolean()
+}).optional(),
   "active": zod.boolean(),
   "createdAt": zod.string()
 }).optional()
@@ -263,6 +273,16 @@ export const GetCurrentUserResponse = zod.object({
   "username": zod.string(),
   "email": zod.string().nullish(),
   "role": zod.string(),
+  "roleId": zod.number().nullish(),
+  "roleName": zod.string().nullish(),
+  "permissions": zod.object({
+  "canViewLeads": zod.boolean(),
+  "canCreateLeads": zod.boolean(),
+  "canEditLeads": zod.boolean(),
+  "canDeleteLeads": zod.boolean(),
+  "canAssignLeads": zod.boolean(),
+  "canEmailLeads": zod.boolean()
+}).optional(),
   "active": zod.boolean(),
   "createdAt": zod.string()
 })
@@ -458,7 +478,8 @@ export const replyToLeadBodyMessageMax = 5000;
 
 export const ReplyToLeadBody = zod.object({
   "subject": zod.string().min(1).max(replyToLeadBodySubjectMax),
-  "message": zod.string().min(1).max(replyToLeadBodyMessageMax)
+  "message": zod.string().min(1).max(replyToLeadBodyMessageMax),
+  "templateId": zod.enum(['intro', 'appointment', 'followup', 'proposal', 'promo']).optional()
 })
 
 export const ReplyToLeadResponse = zod.object({
@@ -580,6 +601,16 @@ export const ListStaffResponseItem = zod.object({
   "username": zod.string(),
   "email": zod.string().nullish(),
   "role": zod.string(),
+  "roleId": zod.number().nullish(),
+  "roleName": zod.string().nullish(),
+  "permissions": zod.object({
+  "canViewLeads": zod.boolean(),
+  "canCreateLeads": zod.boolean(),
+  "canEditLeads": zod.boolean(),
+  "canDeleteLeads": zod.boolean(),
+  "canAssignLeads": zod.boolean(),
+  "canEmailLeads": zod.boolean()
+}).optional(),
   "active": zod.boolean(),
   "createdAt": zod.string()
 })
@@ -594,7 +625,8 @@ export const CreateStaffBody = zod.object({
   "username": zod.string(),
   "email": zod.string().optional(),
   "password": zod.string(),
-  "role": zod.enum(['owner', 'staff']).optional()
+  "role": zod.enum(['owner', 'staff']).optional(),
+  "roleId": zod.number().nullish()
 })
 
 
@@ -609,6 +641,7 @@ export const UpdateStaffBody = zod.object({
   "name": zod.string().optional(),
   "email": zod.string().optional(),
   "role": zod.enum(['owner', 'staff']).optional(),
+  "roleId": zod.number().nullish(),
   "active": zod.boolean().optional()
 })
 
@@ -618,6 +651,16 @@ export const UpdateStaffResponse = zod.object({
   "username": zod.string(),
   "email": zod.string().nullish(),
   "role": zod.string(),
+  "roleId": zod.number().nullish(),
+  "roleName": zod.string().nullish(),
+  "permissions": zod.object({
+  "canViewLeads": zod.boolean(),
+  "canCreateLeads": zod.boolean(),
+  "canEditLeads": zod.boolean(),
+  "canDeleteLeads": zod.boolean(),
+  "canAssignLeads": zod.boolean(),
+  "canEmailLeads": zod.boolean()
+}).optional(),
   "active": zod.boolean(),
   "createdAt": zod.string()
 })
@@ -652,8 +695,99 @@ export const ResetStaffPasswordResponse = zod.object({
   "username": zod.string(),
   "email": zod.string().nullish(),
   "role": zod.string(),
+  "roleId": zod.number().nullish(),
+  "roleName": zod.string().nullish(),
+  "permissions": zod.object({
+  "canViewLeads": zod.boolean(),
+  "canCreateLeads": zod.boolean(),
+  "canEditLeads": zod.boolean(),
+  "canDeleteLeads": zod.boolean(),
+  "canAssignLeads": zod.boolean(),
+  "canEmailLeads": zod.boolean()
+}).optional(),
   "active": zod.boolean(),
   "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List roles (admin)
+ */
+export const ListRolesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "canViewLeads": zod.boolean(),
+  "canCreateLeads": zod.boolean(),
+  "canEditLeads": zod.boolean(),
+  "canDeleteLeads": zod.boolean(),
+  "canAssignLeads": zod.boolean(),
+  "canEmailLeads": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListRolesResponse = zod.array(ListRolesResponseItem)
+
+
+/**
+ * @summary Create a role (owner only)
+ */
+export const createRoleBodyNameMax = 60;
+
+
+
+export const CreateRoleBody = zod.object({
+  "name": zod.string().min(1).max(createRoleBodyNameMax),
+  "canViewLeads": zod.boolean().optional(),
+  "canCreateLeads": zod.boolean().optional(),
+  "canEditLeads": zod.boolean().optional(),
+  "canDeleteLeads": zod.boolean().optional(),
+  "canAssignLeads": zod.boolean().optional(),
+  "canEmailLeads": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Update a role (owner only)
+ */
+export const UpdateRoleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateRoleBodyNameMax = 60;
+
+
+
+export const UpdateRoleBody = zod.object({
+  "name": zod.string().min(1).max(updateRoleBodyNameMax).optional(),
+  "canViewLeads": zod.boolean().optional(),
+  "canCreateLeads": zod.boolean().optional(),
+  "canEditLeads": zod.boolean().optional(),
+  "canDeleteLeads": zod.boolean().optional(),
+  "canAssignLeads": zod.boolean().optional(),
+  "canEmailLeads": zod.boolean().optional()
+})
+
+export const UpdateRoleResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "canViewLeads": zod.boolean(),
+  "canCreateLeads": zod.boolean(),
+  "canEditLeads": zod.boolean(),
+  "canDeleteLeads": zod.boolean(),
+  "canAssignLeads": zod.boolean(),
+  "canEmailLeads": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a role (owner only)
+ */
+export const DeleteRoleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteRoleResponse = zod.object({
+  "success": zod.boolean()
 })
 
 

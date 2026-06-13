@@ -1,9 +1,23 @@
+export interface LeadPermissions {
+  canViewLeads: boolean;
+  canCreateLeads: boolean;
+  canEditLeads: boolean;
+  canDeleteLeads: boolean;
+  canAssignLeads: boolean;
+  canEmailLeads: boolean;
+}
+
+export type PermissionKey = keyof LeadPermissions;
+
 export interface AdminUser {
   id: number;
   name: string;
   username: string;
   email?: string | null;
   role: string;
+  roleId?: number | null;
+  roleName?: string | null;
+  permissions?: LeadPermissions;
   active?: boolean;
   createdAt?: string;
 }
@@ -41,4 +55,15 @@ export function isAuthenticated(): boolean {
 
 export function isOwner(): boolean {
   return getStoredUser()?.role === "owner";
+}
+
+/**
+ * Whether the current user holds a specific lead permission. Owners always
+ * pass; everyone else is checked against their resolved permission flags.
+ */
+export function hasPermission(key: PermissionKey): boolean {
+  const user = getStoredUser();
+  if (!user) return false;
+  if (user.role === "owner") return true;
+  return Boolean(user.permissions?.[key]);
 }

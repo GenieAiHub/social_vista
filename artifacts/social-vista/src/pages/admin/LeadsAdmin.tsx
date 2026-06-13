@@ -8,7 +8,6 @@ import {
   useImportLeads,
   useUpdateLead,
   useDeleteLead,
-  useReplyToLead,
   useListStaff,
   useListLeadActivities,
   useCreateLeadActivity,
@@ -20,6 +19,8 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/AdminLayout";
+import EmailComposer from "@/components/admin/EmailComposer";
+import { hasPermission } from "@/lib/admin-auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,92 +69,6 @@ function effectiveContactTime(lead: Lead): number {
   return lead.lastContactedAt
     ? new Date(lead.lastContactedAt).getTime()
     : new Date(lead.createdAt).getTime();
-}
-
-function ReplyDialog({ lead, onReplied }: { lead: Lead; onReplied: () => void }) {
-  const replyToLead = useReplyToLead();
-  const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [subject, setSubject] = useState(`Re: your inquiry with Social Vista`);
-  const [message, setMessage] = useState("");
-
-  function handleSend() {
-    if (!subject.trim() || !message.trim()) {
-      toast({ title: "Subject and message are required.", variant: "destructive" });
-      return;
-    }
-    replyToLead.mutate(
-      { id: lead.id, data: { subject, message } },
-      {
-        onSuccess: () => {
-          toast({ title: `Reply sent to ${lead.name}.` });
-          setOpen(false);
-          setMessage("");
-          onReplied();
-        },
-        onError: () =>
-          toast({
-            title: "Could not send the reply. Check the email configuration.",
-            variant: "destructive",
-          }),
-      },
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 px-2 text-xs"
-          data-testid={`button-reply-lead-${lead.id}`}
-        >
-          <Send className="w-3.5 h-3.5 mr-1" /> Reply
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Reply to {lead.name}</DialogTitle>
-          <DialogDescription>
-            Sends an email to {lead.email} and marks this lead as contacted.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <Label htmlFor={`reply-subject-${lead.id}`}>Subject</Label>
-            <Input
-              id={`reply-subject-${lead.id}`}
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="mt-1"
-              data-testid={`input-reply-subject-${lead.id}`}
-            />
-          </div>
-          <div>
-            <Label htmlFor={`reply-message-${lead.id}`}>Message</Label>
-            <Textarea
-              id={`reply-message-${lead.id}`}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={`Hi ${lead.name}, thanks for reaching out…`}
-              className="mt-1 min-h-[140px]"
-              data-testid={`textarea-reply-message-${lead.id}`}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button
-            onClick={handleSend}
-            disabled={replyToLead.isPending}
-            data-testid={`button-send-reply-${lead.id}`}
-          >
-            {replyToLead.isPending ? "Sending…" : "Send reply"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }
 
 const activityMeta: Record<string, { icon: typeof History; label: string; color: string }> = {
@@ -233,24 +148,26 @@ function LeadTimeline({ leadId, onChanged }: { leadId: number; onChanged: () => 
         <History className="w-3.5 h-3.5 text-muted-foreground" />
         <span className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Activity timeline</span>
       </div>
-      <div className="flex items-end gap-2 mb-3">
-        <Textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Log a call, meeting, or other touchpoint…"
-          className="min-h-[40px] text-sm"
-          data-testid={`textarea-activity-note-${leadId}`}
-        />
-        <Button
-          size="sm"
-          className="h-9 text-xs flex-shrink-0"
-          onClick={handleAdd}
-          disabled={createActivity.isPending}
-          data-testid={`button-add-activity-${leadId}`}
-        >
-          Log
-        </Button>
-      </div>
+      {hasPermission("canEditLeads") && (
+        <div className="flex items-end gap-2 mb-3">
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Log a call, meeting, or other touchpoint…"
+            className="min-h-[40px] text-sm"
+            data-testid={`textarea-activity-note-${leadId}`}
+          />
+          <Button
+            size="sm"
+            className="h-9 text-xs flex-shrink-0"
+            onClick={handleAdd}
+            disabled={createActivity.isPending}
+            data-testid={`button-add-activity-${leadId}`}
+          >
+            Log
+          </Button>
+        </div>
+      )}
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 2 }).map((_, i) => (
@@ -283,6 +200,10 @@ function LeadCard({
 }) {
   const updateLead = useUpdateLead();
   const deleteLead = useDeleteLead();
+  const canEdit = hasPermission("canEditLeads");
+  const canAssign = hasPermission("canAssignLeads");
+  const canDelete = hasPermission("canDeleteLeads");
+  const canEmail = hasPermission("canEmailLeads");
   const [notes, setNotes] = useState(lead.adminNotes ?? "");
   const [showTimeline, setShowTimeline] = useState(highlight);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -363,17 +284,19 @@ function LeadCard({
             {lastContacted ? `Contacted ${formatDistanceToNow(lastContacted, { addSuffix: true })}` : "Never contacted"}
           </span>
           <div className="flex items-center gap-1.5">
-            {lead.email && <ReplyDialog lead={lead} onReplied={onChanged} />}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
-              onClick={() => deleteLead.mutate({ id: lead.id }, { onSuccess: onChanged })}
-              disabled={deleteLead.isPending}
-              data-testid={`button-delete-lead-${lead.id}`}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+            {lead.email && canEmail && <EmailComposer lead={lead} onReplied={onChanged} />}
+            {canDelete && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                onClick={() => deleteLead.mutate({ id: lead.id }, { onSuccess: onChanged })}
+                disabled={deleteLead.isPending}
+                data-testid={`button-delete-lead-${lead.id}`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -381,7 +304,7 @@ function LeadCard({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-border">
         <div>
           <label className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Status</label>
-          <Select value={lead.status} onValueChange={(v) => patch({ status: v as Status })}>
+          <Select value={lead.status} onValueChange={(v) => patch({ status: v as Status })} disabled={!canEdit}>
             <SelectTrigger className="mt-1 h-9" data-testid={`select-lead-status-${lead.id}`}>
               <SelectValue />
             </SelectTrigger>
@@ -397,6 +320,7 @@ function LeadCard({
           <Select
             value={lead.assignedTo != null ? String(lead.assignedTo) : "unassigned"}
             onValueChange={(v) => patch({ assignedTo: v === "unassigned" ? null : Number(v) })}
+            disabled={!canAssign}
           >
             <SelectTrigger className="mt-1 h-9" data-testid={`select-lead-assignee-${lead.id}`}>
               <SelectValue />
@@ -418,9 +342,10 @@ function LeadCard({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Add a note for the team…"
           className="mt-1 min-h-[60px] text-sm"
+          disabled={!canEdit}
           data-testid={`textarea-lead-notes-${lead.id}`}
         />
-        {notes !== (lead.adminNotes ?? "") && (
+        {canEdit && notes !== (lead.adminNotes ?? "") && (
           <Button
             size="sm"
             className="mt-2 h-7 text-xs"
@@ -445,16 +370,18 @@ function LeadCard({
           {showTimeline ? "Hide timeline" : "View timeline"}
           {showTimeline ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 text-xs gap-1.5"
-          onClick={() => patch({ markContacted: true })}
-          disabled={updateLead.isPending}
-          data-testid={`button-mark-contacted-${lead.id}`}
-        >
-          <CheckCircle2 className="w-3.5 h-3.5" /> Mark contacted now
-        </Button>
+        {canEdit && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1.5"
+            onClick={() => patch({ markContacted: true })}
+            disabled={updateLead.isPending}
+            data-testid={`button-mark-contacted-${lead.id}`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" /> Mark contacted now
+          </Button>
+        )}
       </div>
 
       {showTimeline && <LeadTimeline leadId={lead.id} onChanged={onChanged} />}
@@ -765,6 +692,8 @@ export default function LeadsAdmin() {
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest_contact">("newest");
   const [followUpOnly, setFollowUpOnly] = useState(false);
+  const canCreate = hasPermission("canCreateLeads");
+  const canView = hasPermission("canViewLeads");
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: getListLeadsQueryKey() });
@@ -790,6 +719,20 @@ export default function LeadsAdmin() {
   const newCount = (leads ?? []).filter((l) => l.status === "new").length;
   const followUpCount = (leads ?? []).filter(isLeadStale).length;
 
+  if (!canView) {
+    return (
+      <AdminLayout>
+        <div className="bg-card rounded-xl border border-border p-16 text-center">
+          <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <h1 className="text-lg font-semibold text-foreground">No access to leads</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Your role doesn't include permission to view leads. Ask an owner for access.
+          </p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -809,8 +752,8 @@ export default function LeadsAdmin() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <NewLeadDialog onCreated={invalidate} />
-            <ImportLeadsDialog onImported={invalidate} />
+            {canCreate && <NewLeadDialog onCreated={invalidate} />}
+            {canCreate && <ImportLeadsDialog onImported={invalidate} />}
             <Button
               size="sm"
               variant={followUpOnly ? "default" : "outline"}

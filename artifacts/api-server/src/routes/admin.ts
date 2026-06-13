@@ -1,14 +1,36 @@
 import { Router } from "express";
-import { db, servicesTable, contactsTable, contentBlocksTable, leadsTable, staffTable } from "@workspace/db";
+import { db, servicesTable, contactsTable, contentBlocksTable, leadsTable, staffTable, rolesTable } from "@workspace/db";
 import { eq, count, sql } from "drizzle-orm";
 import {
   AdminLoginBody,
   GetContentResponse,
   UpsertContentBody,
 } from "@workspace/api-zod";
-import { requireAuth, verifyPassword, signToken, type AuthedRequest } from "../lib/auth.js";
+import { requireAuth, verifyPassword, signToken, resolvePermissions, type AuthedRequest } from "../lib/auth.js";
+import type { Role, Staff } from "@workspace/db";
 
 const router = Router();
+
+/** Build the StaffMember response payload for an authenticated user, resolving role + permissions. */
+async function buildUserPayload(staff: Staff) {
+  let roleRow: Role | null = null;
+  if (staff.roleId != null) {
+    const [row] = await db.select().from(rolesTable).where(eq(rolesTable.id, staff.roleId)).limit(1);
+    roleRow = row ?? null;
+  }
+  return {
+    id: staff.id,
+    name: staff.name,
+    username: staff.username,
+    email: staff.email,
+    role: staff.role,
+    roleId: roleRow ? roleRow.id : null,
+    roleName: roleRow ? roleRow.name : null,
+    permissions: resolvePermissions(staff.role, roleRow),
+    active: staff.active,
+    createdAt: staff.createdAt.toISOString(),
+  };
+}
 
 router.post("/admin/login", async (req, res) => {
   try {
@@ -23,12 +45,11 @@ router.post("/admin/login", async (req, res) => {
       return;
     }
 
-    const user = { id: staff.id, username: staff.username, name: staff.name, role: staff.role };
-    const token = signToken(user);
+    const token = signToken({ id: staff.id, username: staff.username, name: staff.name, role: staff.role });
     res.json({
       success: true,
       token,
-      user: { ...user, email: staff.email, active: staff.active, createdAt: staff.createdAt.toISOString() },
+      user: await buildUserPayload(staff),
     });
   } catch (err) {
     req.log.error({ err }, "Failed to login");
@@ -41,15 +62,7 @@ router.get("/admin/me", requireAuth, async (req, res) => {
     const self = (req as AuthedRequest).staff!;
     const [staff] = await db.select().from(staffTable).where(eq(staffTable.id, self.id));
     if (!staff || !staff.active) { res.status(401).json({ error: "Unauthorized" }); return; }
-    res.json({
-      id: staff.id,
-      name: staff.name,
-      username: staff.username,
-      email: staff.email,
-      role: staff.role,
-      active: staff.active,
-      createdAt: staff.createdAt.toISOString(),
-    });
+    res.json(await buildUserPayload(staff));
   } catch (err) {
     req.log.error({ err }, "Failed to get current user");
     res.status(500).json({ error: "Internal server error" });

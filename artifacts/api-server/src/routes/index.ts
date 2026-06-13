@@ -6,6 +6,7 @@ import adminRouter from "./admin";
 import chatRouter from "./chat";
 import testimonialsRouter from "./testimonials";
 import staffRouter from "./staff";
+import rolesRouter from "./roles";
 import leadsRouter from "./leads";
 import tasksRouter from "./tasks";
 
@@ -18,6 +19,7 @@ router.use(adminRouter);
 router.use(chatRouter);
 router.use(testimonialsRouter);
 router.use(staffRouter);
+router.use(rolesRouter);
 router.use(leadsRouter);
 router.use(tasksRouter);
 

@@ -15,7 +15,7 @@ import {
   ListRecentActivitiesQueryParams,
   ImportLeadsBody,
 } from "@workspace/api-zod";
-import { requireAuth, type AuthedRequest, type AuthUser } from "../lib/auth.js";
+import { requireAuth, requirePermission, type AuthedRequest, type AuthUser } from "../lib/auth.js";
 import {
   sendLeadReply,
   sendContactedNotice,
@@ -80,7 +80,7 @@ export async function logActivity(input: {
   });
 }
 
-router.get("/admin/leads", requireAuth, async (req, res) => {
+router.get("/admin/leads", requireAuth, requirePermission("canViewLeads"), async (req, res) => {
   try {
     const query = ListLeadsQueryParams.parse(req.query);
     const conditions: SQL[] = [];
@@ -98,7 +98,7 @@ router.get("/admin/leads", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/admin/leads", requireAuth, async (req, res) => {
+router.post("/admin/leads", requireAuth, requirePermission("canCreateLeads"), async (req, res) => {
   try {
     const author = (req as AuthedRequest).staff;
     const body = CreateLeadBody.parse(req.body);
@@ -132,7 +132,7 @@ router.post("/admin/leads", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/admin/leads/import", requireAuth, async (req, res) => {
+router.post("/admin/leads/import", requireAuth, requirePermission("canCreateLeads"), async (req, res) => {
   try {
     const author = (req as AuthedRequest).staff;
     const body = ImportLeadsBody.parse(req.body);
@@ -182,6 +182,21 @@ router.patch("/admin/leads/:id", requireAuth, async (req, res) => {
     const author = (req as AuthedRequest).staff;
     const { id } = UpdateLeadParams.parse({ id: Number(req.params.id) });
     const body = UpdateLeadBody.parse(req.body);
+    // This endpoint covers two distinct permissions: changing the assignee
+    // requires canAssignLeads, while status/notes/contacted changes require
+    // canEditLeads. Gate each kind of change against the caller's permissions.
+    const perms = author?.permissions;
+    const touchesAssignment = body.assignedTo !== undefined;
+    const touchesEdit =
+      body.status !== undefined || body.adminNotes !== undefined || body.markContacted !== undefined;
+    if (touchesAssignment && !perms?.canAssignLeads) {
+      res.status(403).json({ error: "You don't have permission to assign leads." });
+      return;
+    }
+    if (touchesEdit && !perms?.canEditLeads) {
+      res.status(403).json({ error: "You don't have permission to edit leads." });
+      return;
+    }
     const [existing] = await db
       .select()
       .from(leadsTable)
@@ -250,7 +265,7 @@ router.patch("/admin/leads/:id", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/admin/leads/:id/reply", requireAuth, async (req, res) => {
+router.post("/admin/leads/:id/reply", requireAuth, requirePermission("canEmailLeads"), async (req, res) => {
   try {
     const author = (req as AuthedRequest).staff;
     const { id } = ReplyToLeadParams.parse({ id: Number(req.params.id) });
@@ -269,6 +284,7 @@ router.post("/admin/leads/:id/reply", requireAuth, async (req, res) => {
       name: existing.name,
       subject: body.subject,
       message: body.message,
+      templateId: body.templateId,
     });
     if (!sent) {
       res.status(502).json({ error: "Email could not be sent. Check the Resend configuration." });
@@ -299,7 +315,7 @@ router.post("/admin/leads/:id/reply", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/admin/leads/:id/activities", requireAuth, async (req, res) => {
+router.get("/admin/leads/:id/activities", requireAuth, requirePermission("canViewLeads"), async (req, res) => {
   try {
     const { id } = ListLeadActivitiesParams.parse({ id: Number(req.params.id) });
     const rows = await db
@@ -314,7 +330,7 @@ router.get("/admin/leads/:id/activities", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/admin/activities", requireAuth, async (req, res) => {
+router.get("/admin/activities", requireAuth, requirePermission("canViewLeads"), async (req, res) => {
   try {
     const { limit } = ListRecentActivitiesQueryParams.parse(req.query);
     const rows = await db
@@ -339,7 +355,7 @@ router.get("/admin/activities", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/admin/leads/:id/activities", requireAuth, async (req, res) => {
+router.post("/admin/leads/:id/activities", requireAuth, requirePermission("canEditLeads"), async (req, res) => {
   try {
     const author = (req as AuthedRequest).staff;
     const { id } = CreateLeadActivityParams.parse({ id: Number(req.params.id) });
@@ -366,7 +382,7 @@ router.post("/admin/leads/:id/activities", requireAuth, async (req, res) => {
   }
 });
 
-router.delete("/admin/leads/:id", requireAuth, async (req, res) => {
+router.delete("/admin/leads/:id", requireAuth, requirePermission("canDeleteLeads"), async (req, res) => {
   try {
     const { id } = DeleteLeadParams.parse({ id: Number(req.params.id) });
     await db.delete(leadsTable).where(eq(leadsTable.id, id));

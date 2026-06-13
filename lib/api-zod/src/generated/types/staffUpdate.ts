@@ -11,5 +11,7 @@ export interface StaffUpdate {
   name?: string;
   email?: string;
   role?: StaffUpdateRole;
+  /** @nullable */
+  roleId?: number | null;
   active?: boolean;
 }
