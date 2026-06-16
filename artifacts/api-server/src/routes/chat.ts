@@ -28,8 +28,9 @@ HOW TO BEHAVE:
 - Drive gently toward a next step: "Would you like to book a free consultation?" or "Want me to set up an appointment with our team?"
 
 CAPTURING A LEAD (important):
-- When the visitor shows clear interest (wants a consultation, an appointment, a quote, or to be contacted), collect: their name, a contact (email or phone), what service/goal they're interested in, and — if they want an appointment — their preferred date/time.
-- Ask for any MISSING piece one at a time; don't demand everything at once. A name plus one contact method is the minimum.
+- When the visitor shows clear interest (wants a consultation, an appointment, a quote, or to be contacted), collect: their name, a contact (email, phone, or WhatsApp number), what service/goal they're interested in, and — if they want an appointment — their preferred date/time.
+- If the visitor offers a WhatsApp number (or says their number is on WhatsApp), capture it in the whatsapp field; use the phone field for a regular phone number. It's fine to have both.
+- Ask for any MISSING piece one at a time; don't demand everything at once. A name plus one contact method (email, phone, or WhatsApp) is the minimum.
 - Once you have at least a name and one contact method, call the save_consultation_lead tool to record it. Do NOT mention the tool. After saving, warmly confirm that the team will reach out (and confirm their preferred time if they gave one).
 - Only call the tool once per set of details unless the visitor gives new/updated information.`;
 
@@ -39,13 +40,14 @@ const tools: ChatCompletionTool[] = [
     function: {
       name: "save_consultation_lead",
       description:
-        "Record a visitor as a lead when they want a consultation, appointment, quote, or to be contacted. Requires at least a name and one contact method (email or phone).",
+        "Record a visitor as a lead when they want a consultation, appointment, quote, or to be contacted. Requires at least a name and one contact method (email, phone, or WhatsApp).",
       parameters: {
         type: "object",
         properties: {
           name: { type: "string", description: "The visitor's full name." },
           email: { type: "string", description: "The visitor's email address, if provided." },
-          phone: { type: "string", description: "The visitor's phone/WhatsApp number, if provided." },
+          phone: { type: "string", description: "The visitor's phone number, if provided." },
+          whatsapp: { type: "string", description: "The visitor's WhatsApp number, if provided (only when they say it is their WhatsApp)." },
           serviceInterest: {
             type: "string",
             description: "The service or goal the visitor is interested in.",
@@ -93,6 +95,7 @@ interface LeadArgs {
   name?: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   serviceInterest?: string;
   preferredTime?: string;
   message?: string;
@@ -157,7 +160,7 @@ router.post("/chat", async (req, res) => {
       if (call.function.name === "save_consultation_lead") {
         try {
           const args = JSON.parse(call.function.arguments || "{}") as LeadArgs;
-          if (args.name && (args.email || args.phone)) {
+          if (args.name && (args.email || args.phone || args.whatsapp)) {
             // The assistant re-calls this tool on every new detail during a
             // multi-turn booking. Match a recent chat lead by contact and
             // update it in place so we don't create a duplicate lead per turn.
@@ -165,6 +168,7 @@ router.post("/chat", async (req, res) => {
             const contactMatches: SQL[] = [];
             if (args.email) contactMatches.push(eq(leadsTable.email, args.email));
             if (args.phone) contactMatches.push(eq(leadsTable.phone, args.phone));
+            if (args.whatsapp) contactMatches.push(eq(leadsTable.whatsapp, args.whatsapp));
             const [existing] = await db
               .select()
               .from(leadsTable)
@@ -186,6 +190,7 @@ router.post("/chat", async (req, res) => {
                   name: args.name,
                   email: args.email ?? existing.email,
                   phone: args.phone ?? existing.phone,
+                  whatsapp: args.whatsapp ?? existing.whatsapp,
                   serviceInterest: args.serviceInterest ?? existing.serviceInterest,
                   preferredTime: args.preferredTime ?? existing.preferredTime,
                   message: args.message ?? existing.message,
@@ -198,6 +203,7 @@ router.post("/chat", async (req, res) => {
                 name: args.name,
                 email: args.email ?? null,
                 phone: args.phone ?? null,
+                whatsapp: args.whatsapp ?? null,
                 serviceInterest: args.serviceInterest ?? null,
                 preferredTime: args.preferredTime ?? null,
                 message: args.message ?? null,
@@ -216,7 +222,7 @@ router.post("/chat", async (req, res) => {
               result = "Lead saved successfully. The team will follow up.";
             }
           } else {
-            result = "Need at least a name and one contact method (email or phone) before saving.";
+            result = "Need at least a name and one contact method (email, phone, or WhatsApp) before saving.";
           }
         } catch (toolErr) {
           req.log.error({ err: toolErr }, "Failed to save lead from chat");
@@ -241,7 +247,7 @@ router.post("/chat", async (req, res) => {
       second.choices[0]?.message?.content ??
       (leadCaptured
         ? "Thanks! I've passed your details to our team — they'll reach out shortly."
-        : "Could you share your name and an email or phone number so our team can reach you?");
+        : "Could you share your name and an email, phone, or WhatsApp number so our team can reach you?");
 
     res.json({ reply, leadCaptured });
   } catch (err) {

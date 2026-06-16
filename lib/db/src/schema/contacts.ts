@@ -7,6 +7,7 @@ export const contactsTable = pgTable("contacts", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
+  whatsapp: text("whatsapp"),
   message: text("message").notNull(),
   service: text("service"),
   isRead: boolean("is_read").notNull().default(false),

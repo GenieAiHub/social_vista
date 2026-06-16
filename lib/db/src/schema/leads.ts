@@ -8,6 +8,7 @@ export const leadsTable = pgTable("leads", {
   name: text("name").notNull(),
   email: text("email"),
   phone: text("phone"),
+  whatsapp: text("whatsapp"),
   serviceInterest: text("service_interest"),
   message: text("message"),
   preferredTime: text("preferred_time"),

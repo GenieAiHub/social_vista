@@ -304,6 +304,7 @@ export async function sendNewLeadNotification(args: {
   name: string;
   email?: string | null;
   phone?: string | null;
+  whatsapp?: string | null;
   service?: string | null;
   message?: string | null;
   source: string;
@@ -313,6 +314,7 @@ export async function sendNewLeadNotification(args: {
     ["Name", args.name],
     ["Email", args.email ?? "—"],
     ["Phone", args.phone ?? "—"],
+    ["WhatsApp", args.whatsapp ?? "—"],
     ["Service", args.service ?? "—"],
     ["Source", args.source],
     ["Message", args.message ?? "—"],
@@ -326,7 +328,7 @@ export async function sendNewLeadNotification(args: {
     <p style="margin:0 0 16px;font-size:16px;font-weight:bold;">New lead received</p>
     <table style="width:100%;border-collapse:collapse;background:#faf9ff;border-radius:8px;">${rows}</table>
   `);
-  const text = `New lead received\n\nName: ${args.name}\nEmail: ${args.email ?? "—"}\nPhone: ${args.phone ?? "—"}\nService: ${args.service ?? "—"}\nSource: ${args.source}\nMessage: ${args.message ?? "—"}`;
+  const text = `New lead received\n\nName: ${args.name}\nEmail: ${args.email ?? "—"}\nPhone: ${args.phone ?? "—"}\nWhatsApp: ${args.whatsapp ?? "—"}\nService: ${args.service ?? "—"}\nSource: ${args.source}\nMessage: ${args.message ?? "—"}`;
   return send({
     to: AGENCY_NOTIFICATION_EMAIL,
     subject: `New lead: ${args.name}`,

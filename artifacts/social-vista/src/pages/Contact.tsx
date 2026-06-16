@@ -18,6 +18,7 @@ const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
+  whatsapp: z.string().optional(),
   service: z.string().optional(),
   message: z.string().min(10, "Message must be at least 10 characters"),
 });
@@ -39,12 +40,12 @@ export default function Contact() {
 
   const form = useForm<ContactForm>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { name: "", email: "", phone: "", service: "", message: "" },
+    defaultValues: { name: "", email: "", phone: "", whatsapp: "", service: "", message: "" },
   });
 
   function onSubmit(values: ContactForm) {
     submitContact.mutate(
-      { data: { name: values.name, email: values.email, phone: values.phone, message: values.message, service: values.service } },
+      { data: { name: values.name, email: values.email, phone: values.phone, whatsapp: values.whatsapp, message: values.message, service: values.service } },
       {
         onSuccess: () => setSubmitted(true),
         onError: () => toast({ title: "Something went wrong. Please try again.", variant: "destructive" }),
@@ -175,6 +176,22 @@ export default function Contact() {
                             </FormItem>
                           )}
                         />
+                        <FormField
+                          control={form.control}
+                          name="whatsapp"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-foreground text-sm">WhatsApp Number</FormLabel>
+                              <FormControl>
+                                <Input placeholder="+1 (555) 000-0000" {...field} data-testid="input-contact-whatsapp" className="bg-muted border-input" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 gap-5">
                         <FormField
                           control={form.control}
                           name="service"

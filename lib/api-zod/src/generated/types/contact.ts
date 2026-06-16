@@ -12,6 +12,8 @@ export interface Contact {
   email: string;
   /** @nullable */
   phone?: string | null;
+  /** @nullable */
+  whatsapp?: string | null;
   message: string;
   /** @nullable */
   service: string | null;

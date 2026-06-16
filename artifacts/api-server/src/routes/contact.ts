@@ -19,6 +19,7 @@ router.post("/contact", async (req, res) => {
       name: body.name,
       email: body.email,
       phone: body.phone ?? null,
+      whatsapp: body.whatsapp ?? null,
       message: body.message,
       service: body.service ?? null,
     }).returning();
@@ -29,6 +30,7 @@ router.post("/contact", async (req, res) => {
         name: body.name,
         email: body.email,
         phone: body.phone ?? null,
+        whatsapp: body.whatsapp ?? null,
         serviceInterest: body.service ?? null,
         message: body.message,
         source: "contact",
@@ -52,6 +54,7 @@ router.post("/contact", async (req, res) => {
       name: body.name,
       email: body.email,
       phone: body.phone ?? null,
+      whatsapp: body.whatsapp ?? null,
       service: body.service ?? null,
       message: body.message,
       source: "contact",

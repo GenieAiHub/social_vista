@@ -870,6 +870,8 @@ components:
           type: string
         phone:
           type: ["string", "null"]
+        whatsapp:
+          type: ["string", "null"]
         message:
           type: string
         service:
@@ -888,6 +890,8 @@ components:
         email:
           type: string
         phone:
+          type: string
+        whatsapp:
           type: string
         message:
           type: string
@@ -1089,6 +1093,8 @@ components:
           type: ["string", "null"]
         phone:
           type: ["string", "null"]
+        whatsapp:
+          type: ["string", "null"]
         serviceInterest:
           type: ["string", "null"]
         message:
@@ -1119,6 +1125,8 @@ components:
         email:
           type: string
         phone:
+          type: string
+        whatsapp:
           type: string
         serviceInterest:
           type: string

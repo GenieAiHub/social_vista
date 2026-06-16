@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearch } from "wouter";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
-import { Mail, Phone, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle, History, ArrowRightLeft, UserCheck, StickyNote, Activity as ActivityIcon, ChevronDown, ChevronUp, PlusCircle, Plus, Upload, FileSpreadsheet, X } from "lucide-react";
+import { Mail, Phone, MessageCircle, Calendar, Users, Trash2, Target, Send, Clock, CheckCircle2, AlertTriangle, History, ArrowRightLeft, UserCheck, StickyNote, Activity as ActivityIcon, ChevronDown, ChevronUp, PlusCircle, Plus, Upload, FileSpreadsheet, X } from "lucide-react";
 import {
   useListLeads,
   useCreateLead,
@@ -255,6 +255,17 @@ function LeadCard({
                   <Phone className="w-3 h-3" /> {lead.phone}
                 </a>
               )}
+              {lead.whatsapp && (
+                <a
+                  href={`https://wa.me/${lead.whatsapp.replace(/[^0-9]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                  data-testid={`link-lead-whatsapp-${lead.id}`}
+                >
+                  <MessageCircle className="w-3 h-3" /> {lead.whatsapp}
+                </a>
+              )}
             </div>
             {lead.serviceInterest && (
               <p className="flex items-center gap-1.5 text-xs text-foreground/80 mt-2">
@@ -393,6 +404,7 @@ const EMPTY_LEAD_FORM = {
   name: "",
   email: "",
   phone: "",
+  whatsapp: "",
   serviceInterest: "",
   preferredTime: "",
   message: "",
@@ -419,6 +431,7 @@ function NewLeadDialog({ onCreated }: { onCreated: () => void }) {
           name: form.name.trim(),
           email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
+          whatsapp: form.whatsapp.trim() || undefined,
           serviceInterest: form.serviceInterest.trim() || undefined,
           preferredTime: form.preferredTime.trim() || undefined,
           message: form.message.trim() || undefined,
@@ -466,6 +479,10 @@ function NewLeadDialog({ onCreated }: { onCreated: () => void }) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
+              <Label htmlFor="new-lead-whatsapp">WhatsApp</Label>
+              <Input id="new-lead-whatsapp" value={form.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} className="mt-1" data-testid="input-new-lead-whatsapp" />
+            </div>
+            <div>
               <Label htmlFor="new-lead-service">Service interest</Label>
               <Input id="new-lead-service" value={form.serviceInterest} onChange={(e) => set("serviceInterest", e.target.value)} className="mt-1" data-testid="input-new-lead-service" />
             </div>
@@ -493,6 +510,7 @@ type ImportRow = {
   name: string;
   email: string;
   phone: string;
+  whatsapp: string;
   serviceInterest: string;
   preferredTime: string;
   message: string;
@@ -515,6 +533,7 @@ function mapImportRow(raw: Record<string, unknown>): ImportRow {
     name: pick("name", "fullname", "contactname", "leadname", "client"),
     email: pick("email", "emailaddress", "mail", "e-mail"),
     phone: pick("phone", "phonenumber", "mobile", "contactnumber", "contact", "tel"),
+    whatsapp: pick("whatsapp", "whatsappnumber", "whatsappno", "wa", "whatsap"),
     serviceInterest: pick("serviceinterest", "service", "interest", "serviceinterested"),
     preferredTime: pick("preferredtime", "preferred", "availability", "time"),
     message: pick("message", "notes", "note", "comment", "comments", "details"),
@@ -574,6 +593,7 @@ function ImportLeadsDialog({ onImported }: { onImported: () => void }) {
             name: r.name,
             email: r.email || undefined,
             phone: r.phone || undefined,
+            whatsapp: r.whatsapp || undefined,
             serviceInterest: r.serviceInterest || undefined,
             preferredTime: r.preferredTime || undefined,
             message: r.message || undefined,
@@ -617,7 +637,7 @@ function ImportLeadsDialog({ onImported }: { onImported: () => void }) {
         <div className="space-y-4">
           <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
             <p className="font-medium text-foreground mb-1">Recognized columns</p>
-            <p>Name (required), Email, Phone, Service Interest, Preferred Time, Message. Column names are matched flexibly and extra columns are ignored.</p>
+            <p>Name (required), Email, Phone, WhatsApp, Service Interest, Preferred Time, Message. Column names are matched flexibly and extra columns are ignored.</p>
           </div>
           <div>
             <Input

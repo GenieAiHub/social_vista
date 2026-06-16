@@ -10,6 +10,7 @@ export interface LeadInput {
   name: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   serviceInterest?: string;
   message?: string;
   preferredTime?: string;

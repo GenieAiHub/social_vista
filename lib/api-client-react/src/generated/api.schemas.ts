@@ -44,6 +44,8 @@ export interface Contact {
   email: string;
   /** @nullable */
   phone?: string | null;
+  /** @nullable */
+  whatsapp?: string | null;
   message: string;
   /** @nullable */
   service: string | null;
@@ -55,6 +57,7 @@ export interface ContactInput {
   name: string;
   email: string;
   phone?: string;
+  whatsapp?: string;
   message: string;
   service?: string;
 }
@@ -191,6 +194,8 @@ export interface Lead {
   /** @nullable */
   phone?: string | null;
   /** @nullable */
+  whatsapp?: string | null;
+  /** @nullable */
   serviceInterest?: string | null;
   /** @nullable */
   message?: string | null;
@@ -212,6 +217,7 @@ export interface LeadInput {
   name: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   serviceInterest?: string;
   message?: string;
   preferredTime?: string;

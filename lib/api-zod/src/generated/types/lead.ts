@@ -14,6 +14,8 @@ export interface Lead {
   /** @nullable */
   phone?: string | null;
   /** @nullable */
+  whatsapp?: string | null;
+  /** @nullable */
   serviceInterest?: string | null;
   /** @nullable */
   message?: string | null;
