@@ -10,6 +10,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `docker compose up -d --build` — run the self-hosted prod stack (local Postgres + migrate + app) on the VPS; the app joins the shared `web` network and is fronted by the server's existing shared Caddy
+- `socialvista-deploy` — VPS one-shot deploy: `git pull --ff-only` + `docker compose up -d --build` + dangling-image prune + status (the repo's `deploy.sh`, symlinked to `/usr/local/bin/socialvista-deploy`)
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
