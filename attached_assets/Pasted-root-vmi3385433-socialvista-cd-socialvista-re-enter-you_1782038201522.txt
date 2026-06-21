@@ -1,0 +1,177 @@
+root@vmi3385433:~/socialvista# cd ~/socialvista
+
+# re-enter your Neon URL (Replit → Tools → Secrets → NEON_DATABASE_URL)
+read -rsp "Paste NEON_DATABASE_URL then Enter: " NEON_URL && echo
+
+# stop app so we can recreate the database cleanly
+docker compose stop app
+
+# drop the app DB and recreate it EMPTY (FORCE closes any lingering connections)
+docker exec -i socialvista-db-1 sh -c \
+  'psql -U "$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 \
+     -c "DROP DATABASE IF EXISTS \"$POSTGRES_DB\" WITH (FORCE);" \
+     -c "CREATE DATABASE \"$POSTGRES_DB\" OWNER \"$POSTGRES_USER\";"'
+
+# plain full dump from Neon (no --clean) → restore into the empty DB
+docker exec -e PGURL="$NEON_URL" socialvista-db-1 \
+  sh -c 'pg_dump "$PGURL" --no-owner --no-acl' \
+  | docker exec -i socialvista-db-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
+
+# restart app + clear the URL
+docker compose start app
+unset NEON_URL
+
+# verify
+docker exec socialvista-db-1 sh -c \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select (select count(*) from services) services, (select count(*) from staff) staff, (select count(*) from content_blocks) content, (select count(*) from leads) leads;"'
+Paste NEON_DATABASE_URL then Enter:
+[+] stop 1/1
+ ✔ Container socialvista-app-1 Stopped                                                10.6s
+DROP DATABASE
+CREATE DATABASE
+SET
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 row)
+
+SET
+SET
+SET
+SET
+SET
+SET
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+CREATE TABLE
+CREATE SEQUENCE
+ALTER SEQUENCE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+COPY 0
+COPY 7
+COPY 0
+COPY 6
+COPY 2
+COPY 0
+COPY 9
+COPY 4
+COPY 0
+COPY 4
+ setval
+--------
+      1
+(1 row)
+
+ setval
+--------
+     12
+(1 row)
+
+ setval
+--------
+      1
+(1 row)
+
+ setval
+--------
+     10
+(1 row)
+
+ setval
+--------
+      6
+(1 row)
+
+ setval
+--------
+      1
+(1 row)
+
+ setval
+--------
+      9
+(1 row)
+
+ setval
+--------
+      4
+(1 row)
+
+ setval
+--------
+      1
+(1 row)
+
+ setval
+--------
+      4
+(1 row)
+
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+[+] start 3/3
+ ✔ Container socialvista-db-1      Healthy                                             1.4s
+ ✔ Container socialvista-migrate-1 Exited                                              3.9s
+ ✔ Container socialvista-app-1     Started                                             0.5s
+ services | staff | content | leads
+----------+-------+---------+-------
+        9 |     4 |       7 |     2
+(1 row)
+
+root@vmi3385433:~/socialvista#
