@@ -1,0 +1,18 @@
+{
+	# ACME account email (change to your real address).
+	email admin@socialvista.co.in
+}
+
+socialvista.co.in, www.socialvista.co.in {
+	encode zstd gzip
+
+	# App container (single Node process serving /api/* and the SPA).
+	reverse_proxy app:5000
+
+	# DNS-01 challenge via Cloudflare. Token comes from the CLOUDFLARE_API_TOKEN env
+	# var (needs Zone:DNS:Edit + Zone:Zone:Read). Works behind the orange cloud.
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+		resolvers 1.1.1.1
+	}
+}

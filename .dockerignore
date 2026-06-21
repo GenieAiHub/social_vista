@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/dist
+.git
+.local
+.cache
+.config
+*.tsbuildinfo
+**/*.tsbuildinfo
+.env
+*.log
+# NOTE: attached_assets is intentionally NOT ignored — the Vite "@assets" alias
+# imports from it during the social-vista build.

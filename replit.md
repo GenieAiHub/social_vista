@@ -9,6 +9,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `docker compose up -d --build` — run the self-hosted prod stack (local Postgres + app + Caddy) on the VPS
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
@@ -48,8 +49,10 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-- Deploy: prod runs on Railway (auto-deploy from GitHub) against Neon Postgres; dev uses Replit Postgres. Code changes only reach prod after pushing to GitHub.
-- After seeding/importing rows into the Neon prod DB, resync serial sequences (`SELECT setval(...)`) or inserts will collide on duplicate ids.
+- Deploy: prod is self-hosted on a VPS (IP 79.143.186.46) via Docker Compose — local Postgres (`db`), the app (`app`), and a dedicated Caddy (`caddy`) for TLS. Domain `socialvista.co.in` is on Cloudflare, proxied (orange cloud) with SSL mode Full (strict). Files: `Dockerfile`, `Caddy.Dockerfile`, `Caddyfile`, `docker-compose.yml`, `.env.example`. Dev still uses Replit Postgres. (Legacy: previously Railway + Neon.)
+- TLS: Caddy uses the Cloudflare DNS-01 challenge (custom build with `caddy-dns/cloudflare`), so it gets a real Let's Encrypt cert even behind the orange cloud. `CLOUDFLARE_API_TOKEN` (Zone:DNS:Edit + Zone:Zone:Read) must be in the VPS `.env`.
+- DB on VPS: a one-shot compose `migrate` service runs `drizzle-kit push` against the local Postgres before `app` starts. No SQL migration files exist (push-based). The schema needs no SSL config; `lib/db` reads `DATABASE_URL` generically (local DB = no SSL, Neon required SSL via its URL).
+- After seeding/importing rows into a prod DB, resync serial sequences (`SELECT setval(...)`) or inserts will collide on duplicate ids.
 - Set `ADMIN_USERNAME`/`ADMIN_PASSWORD` in prod before first deploy, or change the seeded owner password immediately after first login.
 - Email: set `RESEND_API_KEY` (and `RESEND_FROM_EMAIL` on a Resend-verified domain) in prod for live sending. Without a verified domain, Resend only delivers to your own account email via the `onboarding@resend.dev` sender. Without the key, all sends are silently skipped (logged).
 - Email images: uploaded composer images are stored in the `email_assets` table (base64) and served by the public `GET /api/email-assets/:id` route — NOT object storage (unavailable on Railway). Outbound email `<img>` URLs must be absolute; the reply route prefers `PUBLIC_APP_URL` and falls back to the request host. Set `PUBLIC_APP_URL` (e.g. `https://yourdomain.com`) in prod so email images resolve to a canonical, non-spoofable origin.

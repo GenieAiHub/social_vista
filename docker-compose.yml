@@ -1,0 +1,68 @@
+# Social Vista — self-hosted stack: local Postgres + app + dedicated Caddy (TLS).
+# Replaces the Railway/Neon deployment. Configure values in .env (see .env.example).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  # One-shot: creates/updates the schema on the local DB (drizzle-kit push), then exits.
+  migrate:
+    build: .
+    command: ["pnpm", "--filter", "@workspace/db", "run", "push"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build: .
+    restart: unless-stopped
+    # App secrets (SESSION_SECRET, GROQ_API_KEY, RESEND_*, ADMIN_*, PUBLIC_APP_URL, ...).
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+      # Local Postgres — overrides any DATABASE_URL from .env (no more Neon).
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  caddy:
+    build:
+      context: .
+      dockerfile: Caddy.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
