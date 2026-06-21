@@ -1,0 +1,39 @@
+root@vmi3385433:~# cd ~/socialvista
+
+# discard your earlier manual `sed` edits — the repo now has the same PG18 fixes
+git checkout -- docker-compose.yml
+
+# pull the new code (deploy.sh, etc.)
+git pull --ff-only
+
+# install the global command (symlink → repo script)
+chmod +x deploy.sh
+ln -sf /root/socialvista/deploy.sh /usr/local/bin/socialvista-deploy
+remote: Enumerating objects: 33, done.
+remote: Counting objects: 100% (33/33), done.
+remote: Compressing objects: 100% (9/9), done.
+remote: Total 28 (delta 19), reused 28 (delta 19), pack-reused 0 (from 0)
+Unpacking objects: 100% (28/28), 402.45 KiB | 4.85 MiB/s, done.
+From https://github.com/GenieAiHub/social_vista
+   2d12abd..8c75e70  main       -> origin/main
+Updating 2d12abd..8c75e70
+Fast-forward
+ ...ialvista-cd-socialvista-apply-the-sa_1782038039026.txt |  80 +++++++++++
+ ...ialvista-cd-socialvista-re-enter-you_1782038201522.txt | 177 +++++++++++++++++++++++++
+ ...ialvista-confirm-the-app-is-reachabl_1782038741545.txt |  27 ++++
+ ...ialvista-cp-env-example-env-nano-env_1782037364368.txt |  65 +++++++++
+ ...up-5-5-Network-socialvista-internal-_1782037798596.txt |  33 +++++
+ attached_assets/screenshots/socialvista_co_in.png         | Bin 0 -> 406957 bytes
+ docker-compose.yml                                        |   6 +-
+ replit.md                                                 |   2 +-
+ 8 files changed, 387 insertions(+), 3 deletions(-)
+ create mode 100644 attached_assets/Pasted-root-vmi3385433-socialvista-cd-socialvista-apply-the-sa_1782038039026.txt
+ create mode 100644 attached_assets/Pasted-root-vmi3385433-socialvista-cd-socialvista-re-enter-you_1782038201522.txt
+ create mode 100644 attached_assets/Pasted-root-vmi3385433-socialvista-confirm-the-app-is-reachabl_1782038741545.txt
+ create mode 100644 attached_assets/Pasted-root-vmi3385433-socialvista-cp-env-example-env-nano-env_1782037364368.txt
+ create mode 100644 attached_assets/Pasted-socialvista-pgdata-up-5-5-Network-socialvista-internal-_1782037798596.txt
+ create mode 100644 attached_assets/screenshots/socialvista_co_in.png
+chmod: cannot access 'deploy.sh': No such file or directory
+root@vmi3385433:~/socialvista# socialvista-deploy
+socialvista-deploy: command not found
+root@vmi3385433:~/socialvista#
