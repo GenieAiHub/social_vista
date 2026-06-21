@@ -3,7 +3,7 @@
 # Railway/Neon deployment. Configure values in .env (see .env.example).
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
