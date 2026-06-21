@@ -1,0 +1,20 @@
+root@vmi3385433:~# # 1. What network(s) is the shared proxy on? (confirm it's "web")
+docker inspect reverse-proxy-caddy-1 --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+
+# 2. Image + how it's configured (caddy-docker-proxy reads labels; plain caddy reads a Caddyfile)
+docker inspect reverse-proxy-caddy-1 --format 'IMAGE: {{.Config.Image}}'
+docker inspect reverse-proxy-caddy-1 --format 'MOUNTS: {{json .Mounts}}'
+
+# 3. Does the proxy have the Cloudflare DNS plugin (needed for TLS behind the orange cloud)?
+docker exec reverse-proxy-caddy-1 caddy list-modules 2>/dev/null | grep -i cloudflare || echo "NO cloudflare module"
+
+# 4. How does an existing working app attach? (I'll mirror this pattern exactly)
+docker inspect agentopia-web-1 --format 'NETWORKS: {{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+docker inspect agentopia-web-1 --format 'LABELS: {{json .Config.Labels}}'
+web
+IMAGE: caddy:2-alpine
+MOUNTS: [{"Type":"volume","Name":"reverse-proxy_caddy-data","Source":"/var/lib/docker/volumes/reverse-proxy_caddy-data/_data","Destination":"/data","Driver":"local","Mode":"rw","RW":true,"Propagation":""},{"Type":"volume","Name":"reverse-proxy_caddy-config","Source":"/var/lib/docker/volumes/reverse-proxy_caddy-config/_data","Destination":"/config","Driver":"local","Mode":"rw","RW":true,"Propagation":""},{"Type":"bind","Source":"/root/agentopia/deploy/reverse-proxy/Caddyfile","Destination":"/etc/caddy/Caddyfile","Mode":"ro","RW":false,"Propagation":"rprivate"},{"Type":"bind","Source":"/root/agentopia/deploy/reverse-proxy/certs","Destination":"/etc/caddy/certs","Mode":"ro","RW":false,"Propagation":"rprivate"}]
+NO cloudflare module
+NETWORKS: agentopia_internal web
+LABELS: {"com.docker.compose.config-hash":"9fce7abda2f7f602cb3fd9322f839a89948b5fa83c1d04f30ab39e5e24c59880","com.docker.compose.container-number":"1","com.docker.compose.depends_on":"api:service_started:false","com.docker.compose.image":"sha256:2278bf6cffe37cf6b2a7307c321a82403c05c6fdaa9483177114188793d9bd1f","com.docker.compose.oneoff":"False","com.docker.compose.project":"agentopia","com.docker.compose.project.config_files":"/root/agentopia/docker-compose.yml,/root/agentopia/docker-compose.proxy.yml","com.docker.compose.project.working_dir":"/root/agentopia","com.docker.compose.replace":"web-1","com.docker.compose.service":"web","com.docker.compose.version":"5.1.4","maintainer":"NGINX Docker Maintainers <docker-maint@nginx.com>"}
+root@vmi3385433:~#
