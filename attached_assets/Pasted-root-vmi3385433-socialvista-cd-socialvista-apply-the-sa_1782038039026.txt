@@ -1,0 +1,80 @@
+root@vmi3385433:~/socialvista# cd ~/socialvista
+
+# apply the same mount fix to the running copy
+sed -i 's#pgdata:/var/lib/postgresql/data#pgdata:/var/lib/postgresql#' docker-compose.yml
+grep -A1 'volumes:' docker-compose.yml | grep postgresql      # should show  - pgdata:/var/lib/postgresql
+
+# start clean (the half-initialized volume must go)
+docker compose down
+docker volume rm socialvista_pgdata
+docker compose up -d
+docker compose ps        # db should finally be (healthy), migrate Exited (0), app Up
+      - pgdata:/var/lib/postgresql
+[+] down 4/4
+ ✔ Container socialvista-app-1     Removed                                             0.0s
+ ✔ Container socialvista-migrate-1 Removed                                             0.0s
+ ✔ Container socialvista-db-1      Removed                                             0.1s
+ ✔ Network socialvista_internal    Removed                                             0.3s
+socialvista_pgdata
+[+] up 5/5
+ ✔ Network socialvista_internal    Created                                             0.1s
+ ✔ Volume socialvista_pgdata       Created                                             0.0s
+ ✔ Container socialvista-db-1      Healthy                                             7.4s
+ ✔ Container socialvista-migrate-1 Exited                                              9.7s
+ ✔ Container socialvista-app-1     Started                                             9.8s
+NAME                IMAGE                COMMAND                  SERVICE   CREATED          STATUS                   PORTS
+socialvista-app-1   socialvista-app      "docker-entrypoint.s…"   app       10 seconds ago   Up Less than a second    5000/tcp
+socialvista-db-1    postgres:18-alpine   "docker-entrypoint.s…"   db        10 seconds ago   Up 9 seconds (healthy)   5432/tcp
+root@vmi3385433:~/socialvista# read -rsp "Paste NEON_DATABASE_URL then Enter: " NEON_URL && echo
+docker compose stop app
+docker exec -e PGURL="$NEON_URL" socialvista-db-1 \
+  sh -c 'pg_dump "$PGURL" --no-owner --no-acl --clean --if-exists' \
+  | docker exec -i socialvista-db-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
+docker compose start app
+unset NEON_URL
+
+# verify
+docker exec socialvista-db-1 sh -c \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select (select count(*) from services) services, (select count(*) from staff) staff, (select count(*) from content_blocks) content, (select count(*) from leads) leads;"'
+Paste NEON_DATABASE_URL then Enter:
+[+] stop 1/1
+ ✔ Container socialvista-app-1 Stopped                                                10.5s
+SET
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 row)
+
+SET
+SET
+SET
+SET
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ERROR:  cannot drop constraint staff_pkey on table public.staff because other objects depend on it
+DETAIL:  constraint tasks_assigned_to_staff_id_fk on table public.tasks depends on index public.staff_pkey
+constraint tasks_created_by_staff_id_fk on table public.tasks depends on index public.staff_pkey
+constraint email_assets_created_by_staff_id_fk on table public.email_assets depends on index public.staff_pkey
+HINT:  Use DROP ... CASCADE to drop the dependent objects too.
+[+] start 3/3
+ ✔ Container socialvista-db-1      Healthy                                             1.4s
+ ✔ Container socialvista-migrate-1 Exited                                              3.0s
+ ✔ Container socialvista-app-1     Started                                             0.4s
+ services | staff | content | leads
+----------+-------+---------+-------
+        0 |     1 |       0 |     0
+(1 row)
+
+root@vmi3385433:~/socialvista#
