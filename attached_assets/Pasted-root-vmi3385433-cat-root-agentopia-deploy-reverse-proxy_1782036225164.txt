@@ -1,0 +1,49 @@
+root@vmi3385433:~# cat /root/agentopia/deploy/reverse-proxy/Caddyfile
+# Shared Caddy reverse proxy, run BEHIND Cloudflare (SSL/TLS mode: Full (strict)).
+# Each site serves a Cloudflare Origin Certificate (trusted by Cloudflare's edge),
+# so the Cloudflare<->server hop is encrypted end-to-end. Caddy does NOT use
+# Let's Encrypt here — the explicit `tls` directive pins the origin cert and
+# disables ACME (which can't complete while traffic is proxied through Cloudflare).
+#
+# Caddy routes by the request's Host header, so one server IP serves many domains:
+# each project's `web` container is reachable on the shared `web` network under the
+# alias referenced below. Drop each domain's origin cert + key into ./certs/<name>/
+# (mounted read-only at /etc/caddy/certs — gitignored, never committed).
+#
+# RECOMMENDED HARDENING (Authenticated Origin Pulls): lock the origin so ONLY
+# Cloudflare can connect. Otherwise anyone who finds your server IP can hit the
+# origin directly and forge X-Forwarded-For (defeating per-IP rate limiting, which
+# trusts the proxy chain via TRUST_PROXY). To enable, see deploy/README.md
+# "Step 5 — Harden": turn on Authenticated Origin Pulls in Cloudflare, download the
+# origin-pull CA to ./certs/cloudflare/origin-pull-ca.pem, and switch each site's
+# single-line `tls ...` to the commented block form shown below it.
+
+{$AGENTOPIA_DOMAIN} {
+        tls /etc/caddy/certs/agentopia/origin.pem /etc/caddy/certs/agentopia/origin.key
+        # Hardened (Authenticated Origin Pulls) — replace the `tls` line above with:
+        # tls /etc/caddy/certs/agentopia/origin.pem /etc/caddy/certs/agentopia/origin.key {
+        #       client_auth {
+        #               mode require_and_verify
+        #               trust_pool file /etc/caddy/certs/cloudflare/origin-pull-ca.pem
+        #       }
+        # }
+        reverse_proxy agentopia-web:80
+}
+
+# To add another project on this VPS (its own domain, same IP):
+#   1. In that project's docker-compose.proxy.yml, give its `web` service a
+#      unique alias on the external `web` network (e.g. `myapp-web`).
+#   2. Create a Cloudflare Origin Certificate for that domain and save it as
+#      ./certs/myapp/origin.pem + ./certs/myapp/origin.key on the VPS.
+#   3. Add a block here, then reload: `docker compose up -d` in this directory.
+#
+# myapp.example.com {
+#       tls /etc/caddy/certs/myapp/origin.pem /etc/caddy/certs/myapp/origin.key
+#       reverse_proxy myapp-web:80
+# }
+
+trustsure.id {
+        tls /etc/caddy/certs/trustsure/origin.pem /etc/caddy/certs/trustsure/origin.key
+        reverse_proxy trustsure-web:80
+}
+root@vmi3385433:~#

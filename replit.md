@@ -9,7 +9,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `docker compose up -d --build` — run the self-hosted prod stack (local Postgres + app + Caddy) on the VPS
+- `docker compose up -d --build` — run the self-hosted prod stack (local Postgres + migrate + app) on the VPS; the app joins the shared `web` network and is fronted by the server's existing shared Caddy
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
@@ -49,8 +49,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-- Deploy: prod is self-hosted on a VPS (IP 79.143.186.46) via Docker Compose — local Postgres (`db`), the app (`app`), and a dedicated Caddy (`caddy`) for TLS. Domain `socialvista.co.in` is on Cloudflare, proxied (orange cloud) with SSL mode Full (strict). Files: `Dockerfile`, `Caddy.Dockerfile`, `Caddyfile`, `docker-compose.yml`, `.env.example`. Dev still uses Replit Postgres. (Legacy: previously Railway + Neon.)
-- TLS: Caddy uses the Cloudflare DNS-01 challenge (custom build with `caddy-dns/cloudflare`), so it gets a real Let's Encrypt cert even behind the orange cloud. `CLOUDFLARE_API_TOKEN` (Zone:DNS:Edit + Zone:Zone:Read) must be in the VPS `.env`.
+- Deploy: prod is self-hosted on a VPS (IP 79.143.186.46) via Docker Compose — local Postgres (`db`), a one-shot `migrate`, and the `app`. There is NO dedicated Caddy in this stack: the server already runs a single SHARED reverse proxy (`reverse-proxy-caddy-1`, plain `caddy:2-alpine`) that owns 80/443 and fronts every project on the box. Our `app` joins the external `web` network under the alias `socialvista-web`, and a site block in the shared Caddyfile reverse-proxies to `socialvista-web:5000`. Domain `socialvista.co.in` (+ `www`) is on Cloudflare, proxied (orange cloud) with SSL mode Full (strict). Files: `Dockerfile`, `docker-compose.yml`, `.env.example`, `.dockerignore`. Dev still uses Replit Postgres. (Legacy: previously Railway + Neon; an earlier dedicated-Caddy/DNS-01 plan was dropped once we found the shared proxy.)
+- TLS: the shared Caddy has NO `caddy-dns/cloudflare` plugin, so DNS-01/Let's Encrypt can't be used behind the orange cloud. Each site instead serves a Cloudflare Origin Certificate pinned via an explicit `tls /etc/caddy/certs/<name>/origin.pem /etc/caddy/certs/<name>/origin.key` line (ACME disabled). For Social Vista: create a CF Origin Cert for `socialvista.co.in` + `*.socialvista.co.in`, drop it at `<reverse-proxy-dir>/certs/socialvista/origin.pem` + `origin.key` (that dir is mounted read-only at `/etc/caddy/certs`), add the site block, then reload the proxy (`docker compose up -d` in the reverse-proxy dir, or `docker exec reverse-proxy-caddy-1 caddy reload --config /etc/caddy/Caddyfile`). The shared Caddyfile lives at `/root/agentopia/deploy/reverse-proxy/Caddyfile` (despite the folder name it's the server-wide shared proxy, not the agentopia app). `CLOUDFLARE_API_TOKEN` (Zone:DNS:Edit + Zone:Zone:Read) is still used for managing DNS records, not for TLS.
 - DB on VPS: a one-shot compose `migrate` service runs `drizzle-kit push` against the local Postgres before `app` starts. No SQL migration files exist (push-based). The schema needs no SSL config; `lib/db` reads `DATABASE_URL` generically (local DB = no SSL, Neon required SSL via its URL).
 - After seeding/importing rows into a prod DB, resync serial sequences (`SELECT setval(...)`) or inserts will collide on duplicate ids.
 - Set `ADMIN_USERNAME`/`ADMIN_PASSWORD` in prod before first deploy, or change the seeded owner password immediately after first login.

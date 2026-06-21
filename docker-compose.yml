@@ -43,8 +43,10 @@ services:
       # Local Postgres — overrides any DATABASE_URL from .env (no more Neon).
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     networks:
-      - internal # to reach db
-      - web # so the shared Caddy can reach this app
+      internal: # to reach db
+      web: # shared reverse-proxy-caddy-1 reaches this app via the alias below
+        aliases:
+          - socialvista-web
     expose:
       - "5000"
     depends_on:
