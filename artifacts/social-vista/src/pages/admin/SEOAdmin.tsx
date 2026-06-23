@@ -417,11 +417,14 @@ function CustomTagsPanel({
       <div className="flex gap-2 bg-muted/60 rounded-lg p-3">
         <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Tags added here are injected into <code className="bg-background px-1 py-0.5 rounded text-[11px]">&lt;head&gt;</code> on <strong>every page</strong> of the site. Use this for verification tags, site-wide meta, or any tag not covered by the page settings above. Example:
-          <br />
-          <code className="bg-background px-1 py-0.5 rounded text-[11px] mt-1 block">
-            {'<meta name="google-site-verification" content="abc123..." />'}
-          </code>
+          Tags added here are injected via JavaScript into <code className="bg-background px-1 py-0.5 rounded text-[11px]">&lt;head&gt;</code> on <strong>every page</strong>. They work for analytics, social, and most site-wide meta tags.
+        </p>
+      </div>
+
+      <div className="flex gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+        <span className="text-yellow-500 mt-0.5 shrink-0 text-sm">⚠️</span>
+        <p className="text-xs text-yellow-800 leading-relaxed">
+          <strong>Verification tags (Google, Bing, etc.) will not work here.</strong> Google's site verification crawler reads raw HTML and does not run JavaScript, so it cannot see tags injected by React. Verification tags must be added directly to <code className="bg-yellow-100 px-1 py-0.5 rounded text-[11px]">index.html</code> — ask your developer to do this, or they can be set through the Replit agent.
         </p>
       </div>
 
