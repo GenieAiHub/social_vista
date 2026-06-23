@@ -15,5 +15,6 @@ export interface Role {
   canDeleteLeads: boolean;
   canAssignLeads: boolean;
   canEmailLeads: boolean;
+  canManageSEO: boolean;
   createdAt: string;
 }

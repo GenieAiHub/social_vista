@@ -13,4 +13,5 @@ export interface Permissions {
   canDeleteLeads: boolean;
   canAssignLeads: boolean;
   canEmailLeads: boolean;
+  canManageSEO: boolean;
 }

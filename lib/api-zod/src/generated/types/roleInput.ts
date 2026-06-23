@@ -18,4 +18,5 @@ export interface RoleInput {
   canDeleteLeads?: boolean;
   canAssignLeads?: boolean;
   canEmailLeads?: boolean;
+  canManageSEO?: boolean;
 }

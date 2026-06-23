@@ -794,7 +794,8 @@ export const CreateRoleBody = zod.object({
   "canEditLeads": zod.boolean().optional(),
   "canDeleteLeads": zod.boolean().optional(),
   "canAssignLeads": zod.boolean().optional(),
-  "canEmailLeads": zod.boolean().optional()
+  "canEmailLeads": zod.boolean().optional(),
+  "canManageSEO": zod.boolean().optional()
 })
 
 
@@ -816,7 +817,8 @@ export const UpdateRoleBody = zod.object({
   "canEditLeads": zod.boolean().optional(),
   "canDeleteLeads": zod.boolean().optional(),
   "canAssignLeads": zod.boolean().optional(),
-  "canEmailLeads": zod.boolean().optional()
+  "canEmailLeads": zod.boolean().optional(),
+  "canManageSEO": zod.boolean().optional()
 })
 
 export const UpdateRoleResponse = zod.object({
@@ -828,6 +830,7 @@ export const UpdateRoleResponse = zod.object({
   "canDeleteLeads": zod.boolean(),
   "canAssignLeads": zod.boolean(),
   "canEmailLeads": zod.boolean(),
+  "canManageSEO": zod.boolean(),
   "createdAt": zod.string()
 })
 

@@ -20,7 +20,7 @@ const navItems: NavItem[] = [
   { label: "Services", href: "/admin/services", icon: Settings, ownerOnly: false },
   { label: "Content", href: "/admin/content", icon: FileText, ownerOnly: false },
   { label: "Contacts", href: "/admin/contacts", icon: MessageSquare, ownerOnly: false },
-  { label: "SEO", href: "/admin/seo", icon: Search, ownerOnly: false },
+  { label: "SEO", href: "/admin/seo", icon: Search, ownerOnly: false, permission: "canManageSEO" },
   { label: "Theme", href: "/admin/theme", icon: Palette, ownerOnly: false },
   { label: "Staff", href: "/admin/staff", icon: UserCog, ownerOnly: true },
   { label: "Roles", href: "/admin/roles", icon: ShieldCheck, ownerOnly: true },

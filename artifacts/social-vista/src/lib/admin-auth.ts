@@ -5,6 +5,7 @@ export interface LeadPermissions {
   canDeleteLeads: boolean;
   canAssignLeads: boolean;
   canEmailLeads: boolean;
+  canManageSEO: boolean;
 }
 
 export type PermissionKey = keyof LeadPermissions;

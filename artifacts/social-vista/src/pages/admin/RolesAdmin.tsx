@@ -44,6 +44,7 @@ interface PermState {
   canDeleteLeads: boolean;
   canAssignLeads: boolean;
   canEmailLeads: boolean;
+  canManageSEO: boolean;
 }
 
 const PERMISSIONS: { key: keyof PermState; label: string; description: string }[] = [
@@ -53,6 +54,7 @@ const PERMISSIONS: { key: keyof PermState; label: string; description: string }[
   { key: "canAssignLeads", label: "Assign leads", description: "Assign leads to team members." },
   { key: "canEmailLeads", label: "Email leads", description: "Send email replies to leads." },
   { key: "canDeleteLeads", label: "Delete leads", description: "Permanently remove leads." },
+  { key: "canManageSEO", label: "Manage SEO", description: "Edit meta tags, keywords, and OG data for all pages." },
 ];
 
 const DEFAULT_PERMS: PermState = {
@@ -62,6 +64,7 @@ const DEFAULT_PERMS: PermState = {
   canDeleteLeads: false,
   canAssignLeads: false,
   canEmailLeads: false,
+  canManageSEO: false,
 };
 
 function PermissionToggles({ value, onChange }: { value: PermState; onChange: (v: PermState) => void }) {
@@ -176,6 +179,7 @@ export default function RolesAdmin() {
       canDeleteLeads: role.canDeleteLeads,
       canAssignLeads: role.canAssignLeads,
       canEmailLeads: role.canEmailLeads,
+      canManageSEO: role.canManageSEO ?? false,
     };
   }
 

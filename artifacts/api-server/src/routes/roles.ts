@@ -22,6 +22,7 @@ function serialize(r: Role) {
     canDeleteLeads: r.canDeleteLeads,
     canAssignLeads: r.canAssignLeads,
     canEmailLeads: r.canEmailLeads,
+    canManageSEO: r.canManageSEO,
     createdAt: r.createdAt.toISOString(),
   };
 }
@@ -57,6 +58,7 @@ router.post("/admin/roles", requireAuth, requireOwner, async (req, res) => {
         canDeleteLeads: body.canDeleteLeads ?? false,
         canAssignLeads: body.canAssignLeads ?? false,
         canEmailLeads: body.canEmailLeads ?? false,
+        canManageSEO: body.canManageSEO ?? false,
       })
       .returning();
     res.status(201).json(serialize(role));
@@ -78,6 +80,7 @@ router.patch("/admin/roles/:id", requireAuth, requireOwner, async (req, res) => 
     if (body.canDeleteLeads !== undefined) updates.canDeleteLeads = body.canDeleteLeads;
     if (body.canAssignLeads !== undefined) updates.canAssignLeads = body.canAssignLeads;
     if (body.canEmailLeads !== undefined) updates.canEmailLeads = body.canEmailLeads;
+    if (body.canManageSEO !== undefined) updates.canManageSEO = body.canManageSEO;
     const [role] = await db
       .update(rolesTable)
       .set(updates)
