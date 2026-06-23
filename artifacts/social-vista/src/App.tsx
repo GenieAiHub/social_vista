@@ -24,6 +24,7 @@ import AdminTasks from "@/pages/admin/TasksAdmin";
 import AdminStaff from "@/pages/admin/StaffAdmin";
 import AdminRoles from "@/pages/admin/RolesAdmin";
 import AdminTheme from "@/pages/admin/ThemeAdmin";
+import AdminSEO from "@/pages/admin/SEOAdmin";
 import AIChatWidget from "@/components/AIChatWidget";
 import ThemeApplier from "@/components/ThemeApplier";
 import { getToken, clearAuth, isAuthenticated, isOwner } from "@/lib/admin-auth";
@@ -109,6 +110,9 @@ function Router() {
         </Route>
         <Route path="/admin/theme">
           <AdminGuard><AdminTheme /></AdminGuard>
+        </Route>
+        <Route path="/admin/seo">
+          <AdminGuard><AdminSEO /></AdminGuard>
         </Route>
         <Route component={NotFound} />
       </Switch>

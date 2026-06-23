@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { useGetContent } from "@workspace/api-client-react";
 
 interface SEOOptions {
   title: string;
@@ -81,4 +82,39 @@ export function useSEO({
       if (existing) existing.remove();
     };
   }, [title, description, keywords, image, type, canonicalPath, JSON.stringify(jsonLd)]);
+}
+
+export interface StoredSEO {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  ogImage?: string;
+  canonicalPath?: string;
+}
+
+export function parseSEOBlock(value: string | null | undefined): StoredSEO {
+  if (!value) return {};
+  try {
+    return JSON.parse(value) as StoredSEO;
+  } catch {
+    return {};
+  }
+}
+
+export function usePageSEO(pageKey: string, defaults: SEOOptions) {
+  const { data: content } = useGetContent();
+
+  const stored = useMemo<StoredSEO>(() => {
+    const block = content?.find((b) => b.key === `seo:${pageKey}`);
+    return parseSEOBlock(block?.value);
+  }, [content, pageKey]);
+
+  useSEO({
+    ...defaults,
+    title: stored.title || defaults.title,
+    description: stored.description || defaults.description,
+    keywords: stored.keywords || defaults.keywords,
+    image: stored.ogImage || defaults.image,
+    canonicalPath: stored.canonicalPath || defaults.canonicalPath,
+  });
 }

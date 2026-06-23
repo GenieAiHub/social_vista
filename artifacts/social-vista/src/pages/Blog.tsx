@@ -4,7 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { blogPosts } from "@/lib/blog-content";
-import { useSEO } from "@/hooks/use-seo";
+import { usePageSEO } from "@/hooks/use-seo";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -14,7 +14,7 @@ export default function Blog() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const siteUrl = origin + import.meta.env.BASE_URL.replace(/\/$/, "");
 
-  useSEO({
+  usePageSEO("blog", {
     title: "Blog — Insights on Social Media, Automation & Digital Growth | Social Vista",
     description:
       "Practical insights on social media strategy, WhatsApp automation, AI in marketing, influencer marketing, and digital growth from the Social Vista team.",

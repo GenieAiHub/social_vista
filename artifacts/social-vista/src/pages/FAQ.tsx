@@ -3,7 +3,7 @@ import { ArrowRight, ChevronDown, Sparkles } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { useSEO } from "@/hooks/use-seo";
+import { usePageSEO } from "@/hooks/use-seo";
 
 const faqs = [
   {
@@ -48,7 +48,7 @@ export default function FAQ() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const siteUrl = origin + import.meta.env.BASE_URL.replace(/\/$/, "");
 
-  useSEO({
+  usePageSEO("faq", {
     title: "FAQ — Frequently Asked Questions | Social Vista",
     description:
       "Answers to common questions about Social Vista's services, pricing, onboarding, reporting, and how we help brands grow with social media, automation, and development.",

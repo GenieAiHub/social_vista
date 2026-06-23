@@ -3,7 +3,7 @@ import { ArrowRight, Target, Heart, Zap, Users, TrendingUp, Sparkles, CheckCircl
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { useSEO } from "@/hooks/use-seo";
+import { usePageSEO } from "@/hooks/use-seo";
 
 const values = [
   {
@@ -36,7 +36,7 @@ const milestones = [
 ];
 
 export default function About() {
-  useSEO({
+  usePageSEO("about", {
     title: "About Social Vista — Your Full-Service Digital Growth Partner",
     description:
       "Learn about Social Vista, a full-service digital agency combining creative strategy with AI-powered automation. Discover our mission, values, and the team driving brand growth worldwide.",

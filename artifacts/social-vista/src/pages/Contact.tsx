@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useSEO } from "@/hooks/use-seo";
+import { usePageSEO } from "@/hooks/use-seo";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -31,7 +31,7 @@ export default function Contact() {
   const submitContact = useSubmitContact();
   const { data: services } = useListServices();
 
-  useSEO({
+  usePageSEO("contact", {
     title: "Contact Us — Get a Free Consultation | Social Vista",
     description:
       "Ready to grow? Contact Social Vista for a free consultation. Tell us about your project and our team will reply within 24 hours with a tailored proposal.",

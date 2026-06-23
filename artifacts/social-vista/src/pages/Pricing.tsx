@@ -3,7 +3,7 @@ import { ArrowRight, Check, Sparkles } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { useSEO } from "@/hooks/use-seo";
+import { usePageSEO } from "@/hooks/use-seo";
 
 const plans = [
   {
@@ -51,7 +51,7 @@ const plans = [
 ];
 
 export default function Pricing() {
-  useSEO({
+  usePageSEO("pricing", {
     title: "Pricing — Custom Plans for Every Stage | Social Vista",
     description:
       "Flexible, custom pricing scoped to your goals and budget. Explore Social Vista's Starter, Growth, and Enterprise plans for social media, automation, and development.",

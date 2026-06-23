@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { iconMap, slugify } from "@/lib/services-content";
 import { Share2 } from "lucide-react";
 import HeroOrbit from "@/components/HeroOrbit";
-import { useSEO } from "@/hooks/use-seo";
+import { usePageSEO } from "@/hooks/use-seo";
 
 const faqs = [
   {
@@ -79,7 +79,7 @@ export default function Home() {
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const siteUrl = origin + import.meta.env.BASE_URL.replace(/\/$/, "");
-  useSEO({
+  usePageSEO("home", {
     title: "Social Vista — Digital Growth, Social Media & AI Marketing Agency",
     description:
       "Social Vista is a full-service digital agency. We help brands grow louder and convert faster with social media management, WhatsApp automation, content & influencer marketing, email marketing, SaaS and Web3 development.",
