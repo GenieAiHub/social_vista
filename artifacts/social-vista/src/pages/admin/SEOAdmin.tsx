@@ -114,7 +114,12 @@ const EMPTY_FORM: FormState = {
 function charCount(s: string, warn: number, max: number) {
   const len = s.length;
   if (len === 0) return null;
-  const color = len > max ? "text-destructive" : len > warn ? "text-yellow-500" : "text-muted-foreground";
+  const color =
+    len > max
+      ? "text-destructive"
+      : len > warn
+        ? "text-yellow-500"
+        : "text-muted-foreground";
   return <span className={`text-xs ${color}`}>{len} chars</span>;
 }
 
@@ -155,13 +160,13 @@ export default function SEOAdmin() {
     }));
   }
 
-  function getBlock(pageKey: string): StoredSEO {
+  function getStored(pageKey: string): StoredSEO {
     const block = content?.find((b) => b.key === `seo:${pageKey}`);
     return parseSEOBlock(block?.value);
   }
 
   function isDirty(pageKey: string): boolean {
-    const stored = getBlock(pageKey);
+    const stored = getStored(pageKey);
     const current = forms[pageKey] ?? EMPTY_FORM;
     return (
       (current.title ?? "") !== (stored.title ?? "") ||
@@ -204,14 +209,15 @@ export default function SEOAdmin() {
   return (
     <AdminLayout>
       <div className="space-y-6 max-w-5xl">
+        {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold font-serif text-foreground flex items-center gap-2">
               <Search className="w-5 h-5 text-primary" /> SEO Settings
             </h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Set page-level meta tags, descriptions, keywords, and Open Graph data for each public page.
-              Leave a field blank to keep the built-in default.
+              Set page-level meta tags, descriptions, keywords, and Open Graph data for each public
+              page. Leave a field blank to keep the built-in default.
             </p>
           </div>
           <div className="flex gap-2">
@@ -228,7 +234,11 @@ export default function SEOAdmin() {
               onClick={handleSave}
               disabled={!dirty || saving || isLoading}
             >
-              {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
+              {saving ? (
+                <RefreshCw className="w-4 h-4 animate-spin mr-1" />
+              ) : (
+                <Save className="w-4 h-4 mr-1" />
+              )}
               Save Page
             </Button>
           </div>
@@ -238,10 +248,14 @@ export default function SEOAdmin() {
           {/* Page Tabs */}
           <nav className="w-40 shrink-0 space-y-1">
             {PAGES.map((page) => {
-              const hasCustom = (() => {
-                const b = getBlock(page.key);
-                return !!(b.title || b.description || b.keywords || b.ogImage || b.canonicalPath);
-              })();
+              const stored = getStored(page.key);
+              const hasCustom = !!(
+                stored.title ||
+                stored.description ||
+                stored.keywords ||
+                stored.ogImage ||
+                stored.canonicalPath
+              );
               const pageDirty = isDirty(page.key);
               return (
                 <button
@@ -259,17 +273,23 @@ export default function SEOAdmin() {
                     {page.label}
                   </span>
                   {pageDirty && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 shrink-0" title="Unsaved changes" />
+                    <span
+                      className="w-1.5 h-1.5 rounded-full bg-yellow-400 shrink-0"
+                      title="Unsaved changes"
+                    />
                   )}
                   {!pageDirty && hasCustom && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" title="Custom SEO set" />
+                    <span
+                      className="w-1.5 h-1.5 rounded-full bg-primary shrink-0"
+                      title="Custom SEO set"
+                    />
                   )}
                 </button>
               );
             })}
           </nav>
 
-          {/* Form */}
+          {/* Form Panel */}
           <div className="flex-1 bg-card border border-border rounded-2xl p-6 space-y-6">
             {isLoading ? (
               <div className="space-y-4">
@@ -279,6 +299,7 @@ export default function SEOAdmin() {
               </div>
             ) : (
               <>
+                {/* Page label */}
                 <div className="flex items-center gap-2 pb-1 border-b border-border">
                   <Globe className="w-4 h-4 text-primary" />
                   <span className="font-semibold text-foreground">{activePage.label}</span>
@@ -288,9 +309,8 @@ export default function SEOAdmin() {
                 {/* Title */}
                 <Field
                   label="Page Title"
-                  hint="Shown in browser tab and Google search results. Recommended: 50–60 characters."
+                  hint="Shown in the browser tab and Google search results. Recommended: 50–60 characters."
                   counter={charCount(form.title, 55, 70)}
-                  placeholder={activePage.defaults.title}
                 >
                   <input
                     type="text"
@@ -306,7 +326,6 @@ export default function SEOAdmin() {
                   label="Meta Description"
                   hint="Shown under the title in search results. Recommended: 140–160 characters."
                   counter={charCount(form.description, 155, 175)}
-                  placeholder={activePage.defaults.description}
                 >
                   <textarea
                     rows={3}
@@ -320,28 +339,28 @@ export default function SEOAdmin() {
                 {/* Keywords */}
                 <Field
                   label="Keywords"
-                  hint="Comma-separated keywords. Not a major ranking factor, but helps categorise content."
+                  hint="Comma-separated keywords. Helps categorise the page for search engines."
                   counter={null}
-                  placeholder={activePage.defaults.keywords ?? ""}
                 >
                   <input
                     type="text"
                     value={form.keywords}
                     onChange={(e) => updateField("keywords", e.target.value)}
-                    placeholder={activePage.defaults.keywords ?? ""}
+                    placeholder={activePage.defaults.keywords}
                     className="input-field"
                   />
                 </Field>
 
+                {/* OG Section */}
                 <div className="border-t border-border pt-5 space-y-6">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Open Graph / Social Sharing</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Open Graph / Social Sharing
+                  </p>
 
-                  {/* OG Image */}
                   <Field
                     label="OG Image URL"
-                    hint="Image shown when this page is shared on social media. Use an absolute URL (https://…). Recommended: 1200×630 px."
+                    hint="Image shown when this page is shared on social media. Absolute URL (https://…). Recommended: 1200×630 px."
                     counter={null}
-                    placeholder="https://yourdomain.com/og-image.jpg"
                   >
                     <input
                       type="url"
@@ -351,7 +370,7 @@ export default function SEOAdmin() {
                       className="input-field"
                     />
                     {form.ogImage && (
-                      <div className="mt-2 rounded-lg overflow-hidden border border-border h-28 w-full bg-muted flex items-center justify-center">
+                      <div className="mt-2 rounded-lg overflow-hidden border border-border h-28 w-full bg-muted">
                         <img
                           src={form.ogImage}
                           alt="OG preview"
@@ -365,15 +384,16 @@ export default function SEOAdmin() {
                   </Field>
                 </div>
 
+                {/* Advanced */}
                 <div className="border-t border-border pt-5 space-y-6">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Advanced</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Advanced
+                  </p>
 
-                  {/* Canonical */}
                   <Field
                     label="Canonical URL Path"
-                    hint={`Override the canonical link tag. Usually left blank (defaults to the page path: ${activePage.path}).`}
+                    hint={`Override the canonical link tag. Usually left blank (defaults to ${activePage.path}).`}
                     counter={null}
-                    placeholder={activePage.path}
                   >
                     <input
                       type="text"
@@ -391,12 +411,24 @@ export default function SEOAdmin() {
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     Fields left blank fall back to the built-in defaults shown as placeholders. The
                     page title is used for both the browser tab and{" "}
-                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">og:title</code> /
-                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">twitter:title</code>.
-                    The description is used for{" "}
-                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">meta description</code>,{" "}
-                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">og:description</code>, and{" "}
-                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">twitter:description</code>.
+                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">og:title</code>{" "}
+                    /{" "}
+                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">
+                      twitter:title
+                    </code>
+                    . The description drives{" "}
+                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">
+                      meta description
+                    </code>
+                    ,{" "}
+                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">
+                      og:description
+                    </code>{" "}
+                    and{" "}
+                    <code className="bg-background px-1 py-0.5 rounded text-[11px]">
+                      twitter:description
+                    </code>
+                    .
                   </p>
                 </div>
               </>
@@ -412,13 +444,11 @@ function Field({
   label,
   hint,
   counter,
-  placeholder: _placeholder,
   children,
 }: {
   label: string;
   hint: string;
   counter: React.ReactNode;
-  placeholder: string;
   children: React.ReactNode;
 }) {
   return (
