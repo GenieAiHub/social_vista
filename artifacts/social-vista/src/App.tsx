@@ -27,6 +27,7 @@ import AdminTheme from "@/pages/admin/ThemeAdmin";
 import AdminSEO from "@/pages/admin/SEOAdmin";
 import AIChatWidget from "@/components/AIChatWidget";
 import ThemeApplier from "@/components/ThemeApplier";
+import CustomMetaInjector from "@/components/CustomMetaInjector";
 import { getToken, clearAuth, isAuthenticated, isOwner } from "@/lib/admin-auth";
 
 // Attach the stored bearer token to every API request.
@@ -70,6 +71,7 @@ function Router() {
   return (
     <>
       <ThemeApplier />
+      <CustomMetaInjector />
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/about" component={About} />
