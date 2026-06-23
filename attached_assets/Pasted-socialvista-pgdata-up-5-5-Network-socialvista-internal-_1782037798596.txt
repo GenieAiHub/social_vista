@@ -1,0 +1,33 @@
+socialvista_pgdata
+[+] up 5/5
+ ✔ Network socialvista_internal    Created                                             0.1s
+ ✔ Volume socialvista_pgdata       Created                                             0.0s
+ ✘ Container socialvista-db-1      Error dependency db failed to start                 2.0s
+ ✔ Container socialvista-migrate-1 Created                                             0.2s
+ ✔ Container socialvista-app-1     Created                                             0.1s
+dependency failed to start: container socialvista-db-1 is unhealthy
+NAME               IMAGE                COMMAND                  SERVICE   CREATED         STATUS                                  PORTS
+socialvista-db-1   postgres:18-alpine   "docker-entrypoint.s…"   db        2 seconds ago   Restarting (1) Less than a second ago
+root@vmi3385433:~/socialvista# # paste the URL when prompted (kept out of shell history)
+read -rsp "Paste NEON_DATABASE_URL then Enter: " NEON_URL && echo
+
+# stop the app so nothing writes during the load
+docker compose stop app
+
+# dump Neon (schema + data + sequences) with the v18 tool and load it into the local db
+docker exec -e PGURL="$NEON_URL" socialvista-db-1 \
+  sh -c 'pg_dump "$PGURL" --no-owner --no-acl --clean --if-exists' \
+  | docker exec -i socialvista-db-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
+
+# bring the app back
+docker compose start app
+unset NEON_URL
+Paste NEON_DATABASE_URL then Enter:
+[+] stop 1/1
+ ✔ Container socialvista-app-1 Stopped                                                 0.0s
+Error response from daemon: Container 9726fd6e989b89489b3fa6d1557f99caf8fd0374ed69a1b8702d768fe6d27da2 is restarting, wait until the container is running
+Error response from daemon: Container 9726fd6e989b89489b3fa6d1557f99caf8fd0374ed69a1b8702d768fe6d27da2 is restarting, wait until the container is running
+[+] start 1/1
+ ✘ Container socialvista-db-1 Error dependency db failed to start                      0.5s
+dependency failed to start: container socialvista-db-1 is unhealthy
+root@vmi3385433:~/socialvista#

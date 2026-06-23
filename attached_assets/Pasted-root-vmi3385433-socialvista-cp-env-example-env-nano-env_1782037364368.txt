@@ -1,0 +1,65 @@
+root@vmi3385433:~/socialvista# cp .env.example .env && nano .env     # set POSTGRES_PASSWORD, SESSION_SECRET,
+                                      # GROQ_API_KEY, RESEND_API_KEY, ADMIN_PASSWORD
+docker compose up -d --build
+docker compose ps
+docker compose logs -f app
+[+] Building 146.1s (15/15) FINISHED
+ => [internal] load local bake definitions                                            0.0s
+ => => reading from stdin 893B                                                        0.0s
+ => [app internal] load build definition from Dockerfile                              0.1s
+ => => transferring dockerfile: 824B                                                  0.0s
+ => [migrate internal] load metadata for docker.io/library/node:20-slim               2.7s
+ => [app internal] load .dockerignore                                                 0.1s
+ => => transferring context: 279B                                                     0.0s
+ => [migrate internal] load build context                                             0.7s
+ => => transferring context: 18.88MB                                                  0.6s
+ => [app 1/6] FROM docker.io/library/node:20-slim@sha256:2cf067cfed83d5ea958367df9f9  9.9s
+ => => resolve docker.io/library/node:20-slim@sha256:2cf067cfed83d5ea958367df9f96619  0.1s
+ => => sha256:804d4d68057cbb26cbcde9a735148ebc6589911bad32cf9dbddb 41.42MB / 41.42MB  1.6s
+ => => sha256:3c02fd806613748139b8b8a14a69ae3518a1b0e863c57c35aada3b92ed 447B / 447B  0.6s
+ => => sha256:64cfb949317c9824fd081d55c59a7225bfe1f650c6395ba42d7ed0 1.71MB / 1.71MB  1.0s
+ => => sha256:e54aec64c365815cd7b91e718f00ac6e625562b1de09036b386146 3.31kB / 3.31kB  0.8s
+ => => sha256:ff86ea2e5edce334d19a34fbc65d1a511aa1fc823dba1110422f 28.24MB / 28.24MB  1.7s
+ => => extracting sha256:ff86ea2e5edce334d19a34fbc65d1a511aa1fc823dba1110422f991aa56  2.7s
+ => => extracting sha256:e54aec64c365815cd7b91e718f00ac6e625562b1de09036b38614621b42  0.1s
+ => => extracting sha256:804d4d68057cbb26cbcde9a735148ebc6589911bad32cf9dbddb5b0ba87  3.8s
+ => => extracting sha256:64cfb949317c9824fd081d55c59a7225bfe1f650c6395ba42d7ed0ccf51  0.3s
+ => => extracting sha256:3c02fd806613748139b8b8a14a69ae3518a1b0e863c57c35aada3b92ed8  0.1s
+ => [app 2/6] RUN corepack enable && corepack prepare pnpm@10.26.1 --activate         7.3s
+ => [migrate 3/6] WORKDIR /app                                                        0.1s
+ => [app 4/6] COPY . .                                                                0.1s
+ => [migrate 5/6] RUN pnpm install --frozen-lockfile                                 20.7s
+ => [migrate 6/6] RUN NODE_ENV=production pnpm --filter @workspace/social-vista run  27.3s
+ => [migrate] exporting to image                                                     76.4s
+ => => exporting layers                                                              37.6s
+ => => exporting manifest sha256:4760d1ce95edef1b3bc7d07bf58203a1b8a4376f3e5a92afb93  0.0s
+ => => exporting config sha256:e6e05314eba9f1b8711c994884cafef4575e8de7b3ca018271a14  0.0s
+ => => exporting attestation manifest sha256:6a484b6ef4eef3f54e0770c0ae07500138975d0  0.1s
+ => => exporting manifest list sha256:f57e7f4fce83079680f098ad3992faa3e196841ef0a54d  0.1s
+ => => naming to docker.io/library/socialvista-migrate:latest                         0.0s
+ => => unpacking to docker.io/library/socialvista-migrate:latest                     38.4s
+ => [app] exporting to image                                                         76.3s
+ => => exporting layers                                                              37.6s
+ => => exporting manifest sha256:d8f0473472abf6a34429edd5995b76a0fe01bcb4060c69a84b1  0.0s
+ => => exporting config sha256:cd91a13e102055648bc4918f6f44bad35f93a48650bfbd2f2fb4e  0.0s
+ => => exporting attestation manifest sha256:98cc683b3f3ab72e301a0f8b11d534c4943aab7  0.1s
+ => => exporting manifest list sha256:f19a3ad7656930bb6d4d64a3e98b2bfbd6c92a0788462c  0.1s
+ => => naming to docker.io/library/socialvista-app:latest                             0.0s
+ => => unpacking to docker.io/library/socialvista-app:latest                         38.4s
+ => [app] resolving provenance for metadata file                                      0.0s
+ => [migrate] resolving provenance for metadata file                                  0.0s
+[+] up 7/7
+ ✔ Image socialvista-migrate       Built                                             146.4s
+ ✔ Image socialvista-app           Built                                             146.4s
+ ✔ Network socialvista_internal    Created                                             0.1s
+ ✔ Volume socialvista_pgdata       Created                                             0.0s
+ ✔ Container socialvista-db-1      Healthy                                             8.9s
+ ✔ Container socialvista-migrate-1 Exited                                             10.4s
+ ✔ Container socialvista-app-1     Started                                            11.0s
+NAME                IMAGE                COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+socialvista-app-1   socialvista-app      "docker-entrypoint.s…"   app       11 seconds ago   Up 1 second               5000/tcp
+socialvista-db-1    postgres:16-alpine   "docker-entrypoint.s…"   db        12 seconds ago   Up 10 seconds (healthy)   5432/tcp
+app-1  | {"level":30,"time":1782037146300,"pid":1,"hostname":"d8cff84f7949","port":5000,"msg":"Server listening"}
+app-1  | {"level":30,"time":1782037146504,"pid":1,"hostname":"d8cff84f7949","username":"admin","msg":"Seeded initial owner account"}
+
+

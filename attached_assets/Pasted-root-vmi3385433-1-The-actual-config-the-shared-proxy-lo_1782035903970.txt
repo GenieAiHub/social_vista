@@ -1,0 +1,151 @@
+root@vmi3385433:~# # 1. The actual config the shared proxy loads (per the inspect mount). Read-only view.
+cat /root/agentopia/deploy/reverse-proxy/Caddyfile
+
+# 2. Does it pull in other files (import directives)?
+grep -in import /root/agentopia/deploy/reverse-proxy/Caddyfile
+
+# 3. What's next to it on the host (cert files? extra configs?)
+ls -la /root/agentopia/deploy/reverse-proxy/
+
+# 4. Every Caddyfile on the server — see if projects keep their own routing files
+find /root -maxdepth 5 -iname 'Caddyfile' 2>/dev/null
+
+# 5. How another project is laid out + wired (to mirror its network + proxy pattern)
+ls -la /root/polypay/deploy /root/trustsure/deploy 2>/dev/null
+cat /root/polypay/docker-compose.yml 2>/dev/null
+# Shared Caddy reverse proxy, run BEHIND Cloudflare (SSL/TLS mode: Full (strict)).
+# Each site serves a Cloudflare Origin Certificate (trusted by Cloudflare's edge),
+# so the Cloudflare<->server hop is encrypted end-to-end. Caddy does NOT use
+# Let's Encrypt here — the explicit `tls` directive pins the origin cert and
+# disables ACME (which can't complete while traffic is proxied through Cloudflare).
+#
+# Caddy routes by the request's Host header, so one server IP serves many domains:
+# each project's `web` container is reachable on the shared `web` network under the
+# alias referenced below. Drop each domain's origin cert + key into ./certs/<name>/
+# (mounted read-only at /etc/caddy/certs — gitignored, never committed).
+#
+# RECOMMENDED HARDENING (Authenticated Origin Pulls): lock the origin so ONLY
+# Cloudflare can connect. Otherwise anyone who finds your server IP can hit the
+# origin directly and forge X-Forwarded-For (defeating per-IP rate limiting, which
+# trusts the proxy chain via TRUST_PROXY). To enable, see deploy/README.md
+# "Step 5 — Harden": turn on Authenticated Origin Pulls in Cloudflare, download the
+# origin-pull CA to ./certs/cloudflare/origin-pull-ca.pem, and switch each site's
+# single-line `tls ...` to the commented block form shown below it.
+
+{$AGENTOPIA_DOMAIN} {
+        tls /etc/caddy/certs/agentopia/origin.pem /etc/caddy/certs/agentopia/origin.key
+        # Hardened (Authenticated Origin Pulls) — replace the `tls` line above with:
+        # tls /etc/caddy/certs/agentopia/origin.pem /etc/caddy/certs/agentopia/origin.key {
+        #       client_auth {
+        #               mode require_and_verify
+        #               trust_pool file /etc/caddy/certs/cloudflare/origin-pull-ca.pem
+        #       }
+        # }
+        reverse_proxy agentopia-web:80
+}
+
+# To add another project on this VPS (its own domain, same IP):
+#   1. In that project's docker-compose.proxy.yml, give its `web` service a
+#      unique alias on the external `web` network (e.g. `myapp-web`).
+#   2. Create a Cloudflare Origin Certificate for that domain and save it as
+#      ./certs/myapp/origin.pem + ./certs/myapp/origin.key on the VPS.
+#   3. Add a block here, then reload: `docker compose up -d` in this directory.
+#
+# myapp.example.com {
+#       tls /etc/caddy/certs/myapp/origin.pem /etc/caddy/certs/myapp/origin.key
+#       reverse_proxy myapp-web:80
+# }
+
+trustsure.id {
+        tls /etc/caddy/certs/trustsure/origin.pem /etc/caddy/certs/trustsure/origin.key
+        reverse_proxy trustsure-web:80
+}
+total 28
+drwxr-xr-x 3 root root 4096 Jun 20 22:55 .
+drwxr-xr-x 4 root root 4096 Jun 20 22:55 ..
+-rw-r--r-- 1 root root   35 Jun 20 15:20 .env
+-rw-r--r-- 1 root root  171 Jun 20 22:55 .env.example
+-rw-r--r-- 1 root root 2420 Jun 21 01:32 Caddyfile
+drwxr-xr-x 5 root root 4096 Jun 21 01:30 certs
+-rw-r--r-- 1 root root 1164 Jun 20 22:55 docker-compose.yml
+/root/agentopia/deploy/reverse-proxy/Caddyfile
+/root/polypay/Caddyfile
+/root/trustsure/deploy:
+total 28
+drwxr-xr-x 2 root root 4096 Jun 21 02:08 .
+drwxr-xr-x 9 root root 4096 Jun 21 00:48 ..
+-rw-r--r-- 1 root root  500 Jun 21 01:54 .env
+-rw-r--r-- 1 root root 1251 Jun 21 00:48 .env.example
+-rw-r--r-- 1 root root 2256 Jun 21 01:28 docker-compose.yml
+-rwxr-xr-x 1 root root 1193 Jun 21 02:08 trustsure-deploy
+-rw-r--r-- 1 root root  604 Jun 21 01:18 web.Caddyfile
+services:
+  # Express API (bundled to dist/index.mjs). Internal only — Caddy proxies to it.
+  api:
+    build:
+      context: .
+      target: api
+    image: polypay-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "8080"
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - polypay
+
+  # Caddy: serves the SPA at / and reverse-proxies /api -> api. Public entrypoint.
+  caddy:
+    build:
+      context: .
+      target: web
+    image: polypay-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    # Only the HTTPS port is published. Cloudflare ("Full (strict)") connects to
+    # the origin over HTTPS, so host port 80 is unnecessary and is intentionally
+    # not published — that avoids colliding with any other service on this host.
+    # Override CADDY_HTTPS_PORT in .env (e.g. 8443) to run alongside another
+    # program that already owns 443; then add a Cloudflare Origin Rule rewriting
+    # the origin port for polypay.in. Leave unset to use the standard 443.
+    ports:
+      - "${CADDY_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./certs:/etc/caddy/certs:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - polypay
+
+  # One-off helper: push the Drizzle schema to the Neon production DB.
+  # Does NOT start with `up`. Run it manually:
+  #   docker compose --profile tools run --rm migrate
+  migrate:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: deps
+    image: polypay-deps
+    env_file: .env
+    # `$$` escapes compose interpolation so the container shell expands the var
+    # that env_file injected. Use run:push-force for non-interactive applies.
+    command: sh -c 'DATABASE_URL="$$NEON_DATABASE_URL" pnpm --filter @workspace/db run push'
+    networks:
+      - polypay
+
+networks:
+  polypay:
+
+volumes:
+  caddy_data:
+  caddy_config:
+root@vmi3385433:~#
