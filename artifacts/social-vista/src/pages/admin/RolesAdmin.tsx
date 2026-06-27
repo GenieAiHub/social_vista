@@ -132,12 +132,12 @@ function RoleDialog({
       }}
     >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className="flex flex-col max-h-[90vh]">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Name the role and choose what its members can do with leads.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto min-h-0 -mx-1 px-1">
           <div>
             <Label htmlFor="role-name">Role name</Label>
             <Input
@@ -151,7 +151,7 @@ function RoleDialog({
           </div>
           <PermissionToggles value={perms} onChange={setPerms} />
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button onClick={submit} disabled={pending} data-testid="button-submit-role">
             Save role
           </Button>
