@@ -3109,7 +3109,7 @@ export const listBlogPosts = async (options?: RequestInit): Promise<BlogPost[]> 
 export const getListBlogPostsQueryKey = () => [`/api/blog`] as const;
 
 export const getListBlogPostsQueryOptions = <TData = Awaited<ReturnType<typeof listBlogPosts>>, TError = ErrorType<unknown>>(
-  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof listBlogPosts>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listBlogPosts>>, TError, TData>>; request?: SecondParameter<typeof customFetch> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = queryOptions?.queryKey ?? getListBlogPostsQueryKey();
@@ -3118,7 +3118,7 @@ export const getListBlogPostsQueryOptions = <TData = Awaited<ReturnType<typeof l
 };
 
 export function useListBlogPosts<TData = Awaited<ReturnType<typeof listBlogPosts>>, TError = ErrorType<unknown>>(
-  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof listBlogPosts>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listBlogPosts>>, TError, TData>>; request?: SecondParameter<typeof customFetch> }
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getListBlogPostsQueryOptions(options);
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
@@ -3135,7 +3135,7 @@ export const getGetBlogPostQueryKey = (slug: string) => [`/api/blog/${slug}`] as
 
 export const getGetBlogPostQueryOptions = <TData = Awaited<ReturnType<typeof getBlogPost>>, TError = ErrorType<unknown>>(
   slug: string,
-  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getBlogPost>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getBlogPost>>, TError, TData>>; request?: SecondParameter<typeof customFetch> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = queryOptions?.queryKey ?? getGetBlogPostQueryKey(slug);
@@ -3145,7 +3145,7 @@ export const getGetBlogPostQueryOptions = <TData = Awaited<ReturnType<typeof get
 
 export function useGetBlogPost<TData = Awaited<ReturnType<typeof getBlogPost>>, TError = ErrorType<unknown>>(
   slug: string,
-  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getBlogPost>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getBlogPost>>, TError, TData>>; request?: SecondParameter<typeof customFetch> }
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetBlogPostQueryOptions(slug, options);
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
@@ -3161,7 +3161,7 @@ export const listAdminBlogPosts = async (options?: RequestInit): Promise<BlogPos
 export const getListAdminBlogPostsQueryKey = () => [`/api/admin/blog`] as const;
 
 export const getListAdminBlogPostsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminBlogPosts>>, TError = ErrorType<unknown>>(
-  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof listAdminBlogPosts>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminBlogPosts>>, TError, TData>>; request?: SecondParameter<typeof customFetch> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = queryOptions?.queryKey ?? getListAdminBlogPostsQueryKey();
@@ -3170,7 +3170,7 @@ export const getListAdminBlogPostsQueryOptions = <TData = Awaited<ReturnType<typ
 };
 
 export function useListAdminBlogPosts<TData = Awaited<ReturnType<typeof listAdminBlogPosts>>, TError = ErrorType<unknown>>(
-  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof listAdminBlogPosts>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+  options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdminBlogPosts>>, TError, TData>>; request?: SecondParameter<typeof customFetch> }
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getListAdminBlogPostsQueryOptions(options);
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };

@@ -71,7 +71,7 @@ router.get("/blog/:slug", async (req, res) => {
   }
 });
 
-router.get("/admin/blog", requireAuth, async (req, res) => {
+router.get("/admin/blog", requireAuth, requirePermission("canManageBlog"), async (req, res) => {
   try {
     const rows = await db
       .select()

@@ -83,6 +83,8 @@ export interface Permissions {
   canDeleteLeads: boolean;
   canAssignLeads: boolean;
   canEmailLeads: boolean;
+  canManageSEO: boolean;
+  canManageBlog: boolean;
 }
 
 export interface StaffMember {
@@ -116,6 +118,8 @@ export interface Role {
   canDeleteLeads: boolean;
   canAssignLeads: boolean;
   canEmailLeads: boolean;
+  canManageSEO: boolean;
+  canManageBlog: boolean;
   createdAt: string;
 }
 
@@ -131,6 +135,8 @@ export interface RoleInput {
   canDeleteLeads?: boolean;
   canAssignLeads?: boolean;
   canEmailLeads?: boolean;
+  canManageSEO?: boolean;
+  canManageBlog?: boolean;
 }
 
 export interface RoleUpdate {
@@ -145,6 +151,8 @@ export interface RoleUpdate {
   canDeleteLeads?: boolean;
   canAssignLeads?: boolean;
   canEmailLeads?: boolean;
+  canManageSEO?: boolean;
+  canManageBlog?: boolean;
 }
 
 export type StaffInputRole = typeof StaffInputRole[keyof typeof StaffInputRole];

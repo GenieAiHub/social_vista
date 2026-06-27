@@ -108,7 +108,7 @@ function RichEditor({ content, onChange }: { content: string; onChange: (html: s
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content || "", false);
+      editor.commands.setContent(content || "", { emitUpdate: false });
     }
   }, [content]);
 

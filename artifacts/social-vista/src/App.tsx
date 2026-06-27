@@ -29,7 +29,7 @@ import AdminBlog from "@/pages/admin/BlogAdmin";
 import AIChatWidget from "@/components/AIChatWidget";
 import ThemeApplier from "@/components/ThemeApplier";
 import CustomMetaInjector from "@/components/CustomMetaInjector";
-import { getToken, clearAuth, isAuthenticated, isOwner } from "@/lib/admin-auth";
+import { getToken, clearAuth, isAuthenticated, isOwner, hasPermission, type PermissionKey } from "@/lib/admin-auth";
 
 // Attach the stored bearer token to every API request.
 setAuthTokenGetter(() => getToken());
@@ -63,6 +63,16 @@ function OwnerGuard({ children }: { children: React.ReactNode }) {
     return <Redirect to="/admin/login" />;
   }
   if (!isOwner()) {
+    return <Redirect to="/admin" />;
+  }
+  return <>{children}</>;
+}
+
+function PermissionGuard({ permission, children }: { permission: PermissionKey; children: React.ReactNode }) {
+  if (!isAuthenticated()) {
+    return <Redirect to="/admin/login" />;
+  }
+  if (!hasPermission(permission)) {
     return <Redirect to="/admin" />;
   }
   return <>{children}</>;
@@ -118,7 +128,7 @@ function Router() {
           <AdminGuard><AdminSEO /></AdminGuard>
         </Route>
         <Route path="/admin/blog">
-          <AdminGuard><AdminBlog /></AdminGuard>
+          <PermissionGuard permission="canManageBlog"><AdminBlog /></PermissionGuard>
         </Route>
         <Route component={NotFound} />
       </Switch>
