@@ -25,6 +25,7 @@ import AdminStaff from "@/pages/admin/StaffAdmin";
 import AdminRoles from "@/pages/admin/RolesAdmin";
 import AdminTheme from "@/pages/admin/ThemeAdmin";
 import AdminSEO from "@/pages/admin/SEOAdmin";
+import AdminBlog from "@/pages/admin/BlogAdmin";
 import AIChatWidget from "@/components/AIChatWidget";
 import ThemeApplier from "@/components/ThemeApplier";
 import CustomMetaInjector from "@/components/CustomMetaInjector";
@@ -115,6 +116,9 @@ function Router() {
         </Route>
         <Route path="/admin/seo">
           <AdminGuard><AdminSEO /></AdminGuard>
+        </Route>
+        <Route path="/admin/blog">
+          <AdminGuard><AdminBlog /></AdminGuard>
         </Route>
         <Route component={NotFound} />
       </Switch>

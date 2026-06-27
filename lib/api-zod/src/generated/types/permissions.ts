@@ -14,4 +14,5 @@ export interface Permissions {
   canAssignLeads: boolean;
   canEmailLeads: boolean;
   canManageSEO: boolean;
+  canManageBlog: boolean;
 }

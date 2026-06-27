@@ -12,6 +12,7 @@ export const rolesTable = pgTable("roles", {
   canAssignLeads: boolean("can_assign_leads").notNull().default(false),
   canEmailLeads: boolean("can_email_leads").notNull().default(false),
   canManageSEO: boolean("can_manage_seo").notNull().default(false),
+  canManageBlog: boolean("can_manage_blog").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Menu, X, Users, UserCog, ClipboardList, ShieldCheck, Mail, Search } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, MessageSquare, Palette, LogOut, Menu, X, Users, UserCog, ClipboardList, ShieldCheck, Mail, Search, BookOpen } from "lucide-react";
 import logoUrl from "@assets/image_e709c6e4_1781263209469.png";
 import { useState } from "react";
 import { clearAuth, getStoredUser, hasPermission, type PermissionKey } from "@/lib/admin-auth";
@@ -20,6 +20,7 @@ const navItems: NavItem[] = [
   { label: "Services", href: "/admin/services", icon: Settings, ownerOnly: false },
   { label: "Content", href: "/admin/content", icon: FileText, ownerOnly: false },
   { label: "Contacts", href: "/admin/contacts", icon: MessageSquare, ownerOnly: false },
+  { label: "Blog", href: "/admin/blog", icon: BookOpen, ownerOnly: false, permission: "canManageBlog" },
   { label: "SEO", href: "/admin/seo", icon: Search, ownerOnly: false, permission: "canManageSEO" },
   { label: "Theme", href: "/admin/theme", icon: Palette, ownerOnly: false },
   { label: "Staff", href: "/admin/staff", icon: UserCog, ownerOnly: true },

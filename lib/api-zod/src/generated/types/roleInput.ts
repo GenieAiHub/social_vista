@@ -19,4 +19,5 @@ export interface RoleInput {
   canAssignLeads?: boolean;
   canEmailLeads?: boolean;
   canManageSEO?: boolean;
+  canManageBlog?: boolean;
 }

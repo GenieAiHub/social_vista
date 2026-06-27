@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { seedOwner } from "./lib/auth";
 import { startEmailAssetCleanup } from "./lib/email-assets";
+import { seedBlogPosts } from "./routes/blog";
 
 const rawPort = process.env["PORT"];
 
@@ -29,6 +30,12 @@ app.listen(port, async (err) => {
     await seedOwner();
   } catch (seedErr) {
     logger.error({ err: seedErr }, "Failed to seed owner account");
+  }
+
+  try {
+    await seedBlogPosts();
+  } catch (seedErr) {
+    logger.error({ err: seedErr }, "Failed to seed blog posts");
   }
 
   startEmailAssetCleanup();

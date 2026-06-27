@@ -19,4 +19,5 @@ export interface RoleUpdate {
   canAssignLeads?: boolean;
   canEmailLeads?: boolean;
   canManageSEO?: boolean;
+  canManageBlog?: boolean;
 }

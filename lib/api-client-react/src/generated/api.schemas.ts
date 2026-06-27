@@ -528,3 +528,44 @@ status?: string;
 assignedTo?: number;
 };
 
+
+export interface BlogPost {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  tags: string[];
+  authorName: string;
+  coverImageUrl?: string | null;
+  published: boolean;
+  publishedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  readTime: string;
+}
+
+export interface BlogPostInput {
+  title: string;
+  slug?: string;
+  excerpt?: string;
+  content?: string;
+  category?: string;
+  tags?: string[];
+  authorName?: string;
+  coverImageUrl?: string | null;
+  published?: boolean;
+}
+
+export interface BlogPostUpdate {
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  content?: string;
+  category?: string;
+  tags?: string[];
+  authorName?: string;
+  coverImageUrl?: string | null;
+  published?: boolean;
+}

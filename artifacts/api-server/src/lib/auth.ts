@@ -22,6 +22,7 @@ export interface LeadPermissions {
   canAssignLeads: boolean;
   canEmailLeads: boolean;
   canManageSEO: boolean;
+  canManageBlog: boolean;
 }
 
 export type PermissionKey = keyof LeadPermissions;
@@ -34,6 +35,7 @@ const ALL_PERMISSIONS: LeadPermissions = {
   canAssignLeads: true,
   canEmailLeads: true,
   canManageSEO: true,
+  canManageBlog: true,
 };
 
 // Staff with no assigned role can see leads but take no actions until an owner
@@ -46,6 +48,7 @@ const VIEW_ONLY_PERMISSIONS: LeadPermissions = {
   canAssignLeads: false,
   canEmailLeads: false,
   canManageSEO: false,
+  canManageBlog: false,
 };
 
 /**
@@ -64,6 +67,7 @@ export function resolvePermissions(role: string, roleRow: Role | null | undefine
     canAssignLeads: roleRow.canAssignLeads,
     canEmailLeads: roleRow.canEmailLeads,
     canManageSEO: roleRow.canManageSEO,
+    canManageBlog: roleRow.canManageBlog,
   };
 }
 

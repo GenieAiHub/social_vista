@@ -10,7 +10,7 @@ Public routes (wouter, in `App.tsx`): `/` (Home), `/about`, `/services`, `/servi
 Desktop nav order (matches the SEOC reference the user supplied): Home, Services (mega menu, DB-driven), About, Blog, Pages dropdown (Pricing + FAQ), Contact Us, and a "Free Consultation" button. Mobile menu mirrors this.
 
 **Content locations:**
-- Blog posts are static data in `lib/blog-content.ts` (`blogPosts` array + `getPost(slug)`). There is no blog CMS/DB table — add posts by editing that file.
+- Blog posts are now DB-driven (`blog_posts` table). Public pages (`Blog.tsx`, `BlogPost.tsx`) fetch via `useListBlogPosts` / `useGetBlogPost` hooks. Admin UI at `/admin/blog` (requires `canManageBlog` permission) uses TipTap rich editor; static posts were seeded on first startup via `seedBlogPosts()` in `routes/blog.ts`. `lib/blog-content.ts` is now unused but kept for reference.
 - Pricing tiers and FAQ items are hardcoded inside `pages/Pricing.tsx` and `pages/FAQ.tsx`.
 - Home hero uses a static illustration `src/assets/hero-team.png` (the user's attached analytics image), NOT an animated component. An earlier animated `HeroOrbit` component was removed because it wasn't rendering for the user on the live site — prefer a plain `<img>` for the hero.
 

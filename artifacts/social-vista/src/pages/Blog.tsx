@@ -3,16 +3,29 @@ import { ArrowRight, Calendar, Clock, Sparkles } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { blogPosts } from "@/lib/blog-content";
+import { useListBlogPosts } from "@workspace/api-client-react";
 import { usePageSEO } from "@/hooks/use-seo";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
+function PostSkeleton() {
+  return (
+    <div className="bg-card rounded-2xl p-6 border border-border animate-pulse">
+      <div className="h-4 w-16 bg-muted rounded-full mb-4" />
+      <div className="h-5 w-3/4 bg-muted rounded mb-2" />
+      <div className="h-4 w-full bg-muted rounded mb-1" />
+      <div className="h-4 w-2/3 bg-muted rounded" />
+    </div>
+  );
+}
+
 export default function Blog() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const siteUrl = origin + import.meta.env.BASE_URL.replace(/\/$/, "");
+
+  const { data: posts, isLoading } = useListBlogPosts();
 
   usePageSEO("blog", {
     title: "Blog — Insights on Social Media, Automation & Digital Growth | Social Vista",
@@ -25,24 +38,23 @@ export default function Blog() {
       "@type": "Blog",
       name: "Social Vista Blog",
       url: `${siteUrl}/blog`,
-      blogPost: blogPosts.map((p) => ({
+      blogPost: (posts ?? []).map((p) => ({
         "@type": "BlogPosting",
         headline: p.title,
         description: p.excerpt,
-        datePublished: p.date,
-        author: { "@type": "Organization", name: p.author },
+        datePublished: p.publishedAt ?? p.createdAt,
+        author: { "@type": "Organization", name: p.authorName },
         url: `${siteUrl}/blog/${p.slug}`,
       })),
     },
   });
 
-  const [featured, ...rest] = blogPosts;
+  const [featured, ...rest] = posts ?? [];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
 
-      {/* Hero */}
       <section className="relative overflow-hidden pt-28 md:pt-36 pb-16">
         <div className="blob bg-secondary w-[480px] h-[480px] -top-24 -left-24" />
         <div className="blob bg-accent/15 w-[420px] h-[420px] top-10 -right-24" />
@@ -61,52 +73,70 @@ export default function Blog() {
         </div>
       </section>
 
-      {/* Featured */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <Link href={`/blog/${featured.slug}`} data-testid={`link-blog-${featured.slug}`}>
-          <div className="card-soft bg-card rounded-3xl p-8 md:p-12 cursor-pointer group">
-            <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-[11px] text-accent font-semibold mb-5">
-              {featured.category}
-            </div>
-            <h2 className="text-2xl md:text-4xl font-bold font-serif mb-4 group-hover:text-primary transition-colors">
-              {featured.title}
-            </h2>
-            <p className="text-muted-foreground leading-relaxed max-w-3xl mb-6">{featured.excerpt}</p>
-            <div className="flex items-center gap-5 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {formatDate(featured.date)}</span>
-              <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {featured.readTime}</span>
-              <span className="inline-flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-all">
-                Read article <ArrowRight className="w-3.5 h-3.5" />
-              </span>
-            </div>
+      {isLoading ? (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-6">
+          <div className="bg-card rounded-3xl p-10 border border-border animate-pulse h-48" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => <PostSkeleton key={i} />)}
           </div>
-        </Link>
-      </section>
-
-      {/* Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rest.map((post) => (
-            <Link key={post.slug} href={`/blog/${post.slug}`} data-testid={`link-blog-${post.slug}`}>
-              <article className="card-soft bg-card rounded-2xl p-6 cursor-pointer group h-full flex flex-col">
-                <div className="inline-flex items-center gap-2 bg-secondary border border-primary/15 rounded-full px-3 py-1 text-[11px] text-primary font-semibold mb-4 self-start">
-                  {post.category}
+        </section>
+      ) : (posts?.length ?? 0) === 0 ? (
+        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 text-center py-24">
+          <p className="text-muted-foreground text-lg">No articles yet — check back soon.</p>
+        </section>
+      ) : (
+        <>
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+            <Link href={`/blog/${featured.slug}`} data-testid={`link-blog-${featured.slug}`}>
+              <div className="card-soft bg-card rounded-3xl p-8 md:p-12 cursor-pointer group">
+                <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-[11px] text-accent font-semibold mb-5">
+                  {featured.category}
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-3 leading-snug group-hover:text-primary transition-colors">
-                  {post.title}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 flex-1">{post.excerpt}</p>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-5 pt-4 border-t border-border">
-                  <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {formatDate(post.date)}</span>
-                  <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {post.readTime}</span>
+                <h2 className="text-2xl md:text-4xl font-bold font-serif mb-4 group-hover:text-primary transition-colors">
+                  {featured.title}
+                </h2>
+                <p className="text-muted-foreground leading-relaxed max-w-3xl mb-6">{featured.excerpt}</p>
+                <div className="flex items-center gap-5 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" /> {formatDate(featured.publishedAt ?? featured.createdAt)}
+                  </span>
+                  <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {featured.readTime}</span>
+                  <span className="inline-flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-all">
+                    Read article <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
                 </div>
-              </article>
+              </div>
             </Link>
-          ))}
-        </div>
-      </section>
+          </section>
 
-      {/* CTA */}
+          {rest.length > 0 && (
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {rest.map((post) => (
+                  <Link key={post.slug} href={`/blog/${post.slug}`} data-testid={`link-blog-${post.slug}`}>
+                    <article className="card-soft bg-card rounded-2xl p-6 cursor-pointer group h-full flex flex-col">
+                      <div className="inline-flex items-center gap-2 bg-secondary border border-primary/15 rounded-full px-3 py-1 text-[11px] text-primary font-semibold mb-4 self-start">
+                        {post.category}
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground mb-3 leading-snug group-hover:text-primary transition-colors">
+                        {post.title}
+                      </h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 flex-1">{post.excerpt}</p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-5 pt-4 border-t border-border">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5" /> {formatDate(post.publishedAt ?? post.createdAt)}
+                        </span>
+                        <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {post.readTime}</span>
+                      </div>
+                    </article>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
+
       <section className="py-20 bg-muted/40 border-t border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold font-serif mb-5">
